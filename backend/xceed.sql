@@ -6,6 +6,9 @@ USE xceed;
 
 SHOW DATABASES ;
 
+DROP TABLE Department
+DROP TABLE User
+
 CREATE TABLE Department (
   id INT AUTO_INCREMENT UNIQUE NOT NULL PRIMARY KEY,
   name VARCHAR(128) NOT NULL,
@@ -33,7 +36,7 @@ CREATE TABLE User (
   date_joined DATE NOT NULL,
   birthdate DATE NOT NULL,
   employment_status VARCHAR(32) NOT NULL,
-  FOREIGN KEY (department) REFERENCES Department(name)
+  FOREIGN KEY (department, site) REFERENCES Department(name, site)
 );
 
 -- Queries
@@ -141,7 +144,3 @@ CALL InsertUser('Alice', 'Johnson', 'alice.johnson@email.com', 'alicejohnson', '
 CALL InsertUser('Bob', 'Williams', 'bob.williams@email.com', 'bobwilliams', 'hashed_password', 'HR', 'Maadi Technology Park', 'Assistant', '101 Pine St', 'Chicago', 'USA', '7778889999', 'salt101', 'employee', '2023-04-30', '1987-03-08', 'active');
 CALL InsertUser('Eve', 'Brown', 'eve.brown@email.com', 'evebrown', 'hashed_password', 'Application', 'Maadi Technology Park', 'Designer', '202 Cedar St', 'Miami', 'USA', '9998887777', 'salt202', 'employee', '2023-05-10', '1992-09-25', 'inactive');
 CALL GetEmployeeIDsInDepartment('HR', 'Maadi Technology Park');
-
-
-
-
