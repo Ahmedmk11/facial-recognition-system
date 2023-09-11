@@ -2,11 +2,13 @@
 # Imports & Initialization
 # ---------------------------------------
 
+from datetime import datetime
 import os
+from typing import *
 from flask import Flask, request, jsonify, session, send_from_directory
 from flask_session import Session
 from flask_cors import CORS
-import mysql.connector
+from mysql.connector.connection import MySQLConnection
 
 app = Flask(__name__, static_folder='../dist')
 CORS(app, origins="http://127.0.0.1:5174")
@@ -15,8 +17,8 @@ CORS(app, origins="http://127.0.0.1:5174")
 # Database
 # ---------------------------------------
 
-def create_db_connection():
-    connection = mysql.connector.connect(
+def create_db_connection() -> MySQLConnection:
+    connection = MySQLConnection(
         host='localhost',
         user='root',
         password= os.environ.get('DATABASE_PASSWORD'),
@@ -24,14 +26,70 @@ def create_db_connection():
     )
     return connection
 
+def get_data(query: str) -> Dict[str, Any]:
+    connection = create_db_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    cursor.execute(query)
+
+    data = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    return jsonify(data)
+    
+import mysql.connector
+
+def call_insert_procedure(
+    procedure_name: str,
+    *params: str
+):
+    """
+    Calls an SQL insert procedure with the provided parameters.
+
+    Args:
+        procedure_name (str): The name of the SQL insert procedure.
+        params (str): Parameter values as individual strings.
+
+    Returns:
+        int: The last inserted row's ID (auto-increment primary key).
+    """
+    try:
+        connection = create_db_connection()
+        cursor = connection.cursor()
+
+        # Create an OUT parameter variable to capture the result
+        out_param = 0  # Initialize with a default value
+
+        params_string = ', '.join(['%s' for _ in params])
+        # Include the OUT parameter as the last parameter
+        cursor.callproc(procedure_name, params + (out_param,))
+
+        # Fetch the OUT parameter value
+        cursor.execute("SELECT @last_inserted_id")
+        last_inserted_id = cursor.fetchone()[0]
+
+        connection.commit()
+        return last_inserted_id
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        connection.rollback()
+        return -1
+    finally:
+        cursor.close()
+        connection.close()
+
+
 # ---------------------------------------
 # Session
 # ---------------------------------------
 
-app.config['SESSION_TYPE'] = 'filesystem'  # Example: Store sessions on the filesystem
-app.config['SESSION_PERMANENT'] = False  # Whether the session should expire on browser close
-app.config['SESSION_USE_SIGNER'] = True  # Sign session cookies for security (optional)
-app.config['SESSION_KEY_PREFIX'] = 'xfrs_'  # Prefix for session keys (optional)
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_KEY_PREFIX'] = 'xfrs_'
 
 app.secret_key = os.environ.get('SECRET_KEY')
 api_key = os.environ.get('API_KEY')
@@ -46,58 +104,72 @@ Session(app)
 # POST requests
 # ---------------------------------------
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    return True
-    # if request.method == 'POST':
-    #     username = request.form['username']
-    #     password = request.form['password']
-
-    #     # Check if the provided username exists in the user database
-    #     if username in users and users[username] == password:
-    #         # Authentication successful, set session variables
-    #         session['user_id'] = username
-    #         return redirect(url_for('dashboard'))
-    #     else:
-    #         error = 'Invalid username or password. Please try again.'
-
-    # return render_template('login.html', error=error if 'error' in locals() 
-
 @app.route('/register', methods=['POST'])
 def register():
-    # Register user and return a JSON response
-    # Example: return jsonify({'message': 'Registration successful'})
-    return jsonify({'message': 'Registration successful'})
+    if request.is_json:
+        data = request.get_json()
+        firstname = data.get('firstname')
+        lastname = data.get('lastname')
+        email = data.get('email')
+        username = data.get('username')
+        street_address = data.get('street_address')
+        city = data.get('city')
+        country = data.get('country')
+        phone_number = data.get('phone_number')
+
+        date_format = '%Y-%m-%dT%H:%M:%S.%fZ'
+        parsed_date = datetime.strptime(data.get('birthdate'), date_format)
+        birthdate = parsed_date.date()
+
+        if not (firstname and lastname and username and email and street_address and city and country and phone_number and birthdate):
+            error_response = {'error': 'Invalid or missing data'}
+            return jsonify(error_response), 400
+
+        procedure_name = "InsertUser"
+        params = (firstname, lastname, email, username, street_address, city, country, phone_number, birthdate)
+        inserted_id = call_insert_procedure(procedure_name, *params)
+
+        if inserted_id != -1:
+            session['user'] = {
+                'user_id': inserted_id,
+                'username': username,
+                'email': email,
+                'firstname': firstname,
+                'lastname': lastname
+            }
+            print(f"Data inserted successfully. Inserted ID: {inserted_id}")
+            response_data = {'message': 'Registration successful'}
+            return jsonify(response_data), 200
+        else:
+            error_response = {'error': 'Failed to insert data'}
+            return jsonify(error_response), 500  # You can use a more appropriate HTTP status code
+
+    else:
+        error_response = {'error': 'Invalid request format'}
+        return jsonify(error_response), 400
+
+@app.route('/login', methods=['POST'])
+def login():
+    # Assuming you have validated the user's credentials successfully
+    # Retrieve user data from the database
+    user_data = {'user_id': 123, 'username': 'exampleuser'}
+
+    # Store user data in the session
+    session['user'] = user_data
+    return jsonify({'message': 'Login successful'})
 
 # ---------------------------------------
 # GET requests
 # ---------------------------------------
 
-@app.route('/home', methods=['GET'])
-def index():
-    # You can optionally pass data to your HTML page here
-    return app.send_static_file('index.html')
-
-@app.route('/', methods=['GET'])
-def get_data():
-    connection = create_db_connection()
-    cursor = connection.cursor(dictionary=True)
-
-    # Execute SQL query to fetch data
-    query = "SELECT * FROM User"
-    cursor.execute(query)
-
-    # Fetch all rows as a list of dictionaries
-    data = cursor.fetchall()
-
-    # Close cursor and connection
-    cursor.close()
-    connection.close()
-
-    # Return the data as JSON
-    return jsonify(data)
+@app.route('/api/check-session', methods=['GET'])
+def check_session():
+    if 'user' in session:
+        return jsonify({'authenticated': True})
+    else:
+        return jsonify({'authenticated': False})
 
 # ---------------------------------------
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8080)
+    app.run(debug=True, port=5000)
