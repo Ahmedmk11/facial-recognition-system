@@ -168,6 +168,69 @@ def check_session():
         return jsonify({'authenticated': True})
     else:
         return jsonify({'authenticated': False})
+    
+@app.route('/api/check-email', methods=['GET'])
+def check_email():
+    email = request.args.get('email')
+    
+    if not email:
+        return jsonify({'emailInUse': False})
+    
+    conn = create_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT COUNT(*) FROM User WHERE email = %s', (email,))
+    count = cursor.fetchone()[0]
+
+    cursor.close()
+    conn.close()
+
+    if count != 0:
+        return jsonify({'emailInUse': True})
+    
+    return jsonify({'emailInUse': False})
+
+@app.route('/api/check-username', methods=['GET'])
+def check_username():
+    username = request.args.get('username')
+    
+    if not username:
+        return jsonify({'usernameInUse': False})
+    
+    conn = create_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT COUNT(*) FROM User WHERE username = %s', (username,))
+    count = cursor.fetchone()[0]
+
+    cursor.close()
+    conn.close()
+
+    if count != 0:
+        return jsonify({'usernameInUse': True})
+    
+    return jsonify({'usernameInUse': False})
+
+@app.route('/api/check-number', methods=['GET'])
+def check_number():
+    number = request.args.get('number')
+    
+    if not number:
+        return jsonify({'numberInUse': False})
+    
+    conn = create_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT COUNT(*) FROM User WHERE phone_number = %s', (number,))
+    count = cursor.fetchone()[0]
+
+    cursor.close()
+    conn.close()
+
+    if count != 0:
+        return jsonify({'numberInUse': True})
+    
+    return jsonify({'numberInUse': False})
 
 # ---------------------------------------
 

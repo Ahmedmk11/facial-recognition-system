@@ -1,11 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Form, Input, Button, DatePicker, message } from 'antd'
 import axios from 'axios'
 const { Item } = Form
 
 function Register() {
     const [form] = Form.useForm()
-
     const onFinish = async (values: any) => {
         try {
             const response = await axios.post(
@@ -22,6 +21,81 @@ function Register() {
             message.error('Registration failed')
         }
     }
+    const checkEmailInUse = async (rule: any, value: any) => {
+        if (value) {
+            try {
+                const response = await axios.get(
+                    'http://127.0.0.1:5000/api/check-email',
+                    {
+                        params: {
+                            email: value,
+                        },
+                    }
+                )
+
+                const { emailInUse } = response.data
+
+                if (emailInUse) {
+                    return Promise.reject('Email is already in use')
+                }
+            } catch (error) {
+                console.error('Error checking email availability:', error)
+                return Promise.reject('Error checking email availability')
+            }
+        }
+        return Promise.resolve()
+    }
+
+    const checkUserNameInUse = async (rule: any, value: any) => {
+        if (value) {
+            try {
+                const response = await axios.get(
+                    'http://127.0.0.1:5000/api/check-username',
+                    {
+                        params: {
+                            username: value,
+                        },
+                    }
+                )
+
+                const { usernameInUse } = response.data
+
+                if (usernameInUse) {
+                    return Promise.reject('Username is taken')
+                }
+            } catch (error) {
+                console.error('Error checking username availability:', error)
+                return Promise.reject('Error checking username availability')
+            }
+        }
+        return Promise.resolve()
+    }
+
+    const checkNumberInUse = async (rule: any, value: any) => {
+        if (value) {
+            try {
+                const response = await axios.get(
+                    'http://127.0.0.1:5000/api/check-number',
+                    {
+                        params: {
+                            number: value,
+                        },
+                    }
+                )
+
+                const { numberInUse } = response.data
+
+                if (numberInUse) {
+                    return Promise.reject('Phone Number is already in use')
+                }
+            } catch (error) {
+                console.error('Error checking number availability:', error)
+                return Promise.reject('Error checking number availability')
+            }
+        }
+        return Promise.resolve()
+    }
+
     return (
         <div id='register-page'>
             <Form
@@ -62,7 +136,11 @@ function Register() {
                     name='email'
                     rules={[
                         { required: true, message: 'Please enter your email' },
-                        { type: 'email', message: 'Invalid email format' },
+                        {
+                            type: 'email',
+                            message: 'Invalid email format',
+                        },
+                        { validator: checkEmailInUse },
                     ]}
                 >
                     <Input />
@@ -73,6 +151,7 @@ function Register() {
                     name='username'
                     rules={[
                         { required: true, message: 'Please enter a username' },
+                        { validator: checkUserNameInUse },
                     ]}
                 >
                     <Input />
@@ -126,6 +205,7 @@ function Register() {
                             pattern: /^[0-9]+$/,
                             message: 'Phone number must contain only digits',
                         },
+                        { validator: checkNumberInUse },
                     ]}
                 >
                     <Input />
