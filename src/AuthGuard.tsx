@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Login from './pages/Login'
 
 interface AuthGuardProps {
     isAuthenticated: boolean
@@ -11,14 +12,19 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     targetPage,
 }) => {
     const navigate = useNavigate()
+    const componentName = (targetPage as any)?.name
 
     useEffect(() => {
         if (!isAuthenticated) {
             navigate('/login')
+        } else {
+            if (componentName === 'Login') {
+                navigate('/home')
+            }
         }
-    }, [isAuthenticated, navigate])
+    }, [])
 
-    return isAuthenticated ? targetPage : null
+    return isAuthenticated ? targetPage : <Login />
 }
 
 export default AuthGuard

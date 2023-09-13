@@ -5,11 +5,15 @@ const { Item } = Form
 
 function Register() {
     const [form] = Form.useForm()
+
     const onFinish = async (values: any) => {
         try {
             const response = await axios.post(
                 'http://127.0.0.1:5000/register',
-                values
+                values,
+                {
+                    withCredentials: true,
+                }
             )
             // Handle the response from the server (e.g., display success or error message)
             console.log('Server response:', response.data)
@@ -21,6 +25,7 @@ function Register() {
             message.error('Registration failed')
         }
     }
+
     const checkEmailInUse = async (rule: any, value: any) => {
         if (value) {
             try {
@@ -30,6 +35,7 @@ function Register() {
                         params: {
                             email: value,
                         },
+                        withCredentials: true,
                     }
                 )
 
@@ -55,6 +61,7 @@ function Register() {
                         params: {
                             username: value,
                         },
+                        withCredentials: true,
                     }
                 )
 
@@ -80,6 +87,7 @@ function Register() {
                         params: {
                             number: value,
                         },
+                        withCredentials: true,
                     }
                 )
 

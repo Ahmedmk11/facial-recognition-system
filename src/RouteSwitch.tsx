@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import {
+    Routes,
+    Route,
+    useLocation,
+    Navigate,
+    useNavigate,
+} from 'react-router-dom'
 import axios from 'axios'
 
 import Home from './pages/Home'
@@ -10,23 +16,34 @@ import AuthGuard from './AuthGuard'
 
 const RouteSwitch = () => {
     const location = useLocation()
-    const [isAuthenticated, setIsAuthenticated] = useState(false)
+    const [isAuthenticated, setIsAuthenticated] = useState<null | boolean>(null)
 
     useEffect(() => {
         axios
-            .get('http://127.0.0.1:5000/api/check-session')
+            .get('http://127.0.0.1:5000/api/check-session', {
+                withCredentials: true,
+            })
             .then((response) => {
                 const { authenticated } = response.data
                 setIsAuthenticated(authenticated)
             })
             .catch((error) => {
                 console.log("Can't get authentication: ", error)
+                setIsAuthenticated(false)
             })
     }, [])
 
     useEffect(() => {
+        console.log(isAuthenticated)
+    }, [isAuthenticated])
+
+    useEffect(() => {
         window.scrollTo(0, 0)
     }, [location])
+
+    if (isAuthenticated === null) {
+        return null
+    }
 
     return (
         <Routes>
@@ -59,7 +76,15 @@ const RouteSwitch = () => {
             />
 
             <Route path='/register' element={<Register />} />
-            <Route path='/login' element={<Login />} />
+            <Route
+                path='/login'
+                element={
+                    <AuthGuard
+                        isAuthenticated={!isAuthenticated}
+                        targetPage={<Login />}
+                    />
+                }
+            />
         </Routes>
     )
 }

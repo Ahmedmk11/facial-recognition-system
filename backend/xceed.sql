@@ -4,7 +4,7 @@ CREATE DATABASE xceed;
 
 USE xceed;
 
-SHOW DATABASES ;
+SHOW DATABASES;
 
 -- Queries
 
@@ -35,6 +35,7 @@ BEGIN
         date_joined DATE,
         birthdate DATE NOT NULL,
         employment_status VARCHAR(32),
+        attendance JSON
         FOREIGN KEY (department, site) REFERENCES Department(name, site)
     );
 END;
