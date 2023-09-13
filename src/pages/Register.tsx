@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import { Form, Input, Button, DatePicker, message } from 'antd'
 import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
 const { Item } = Form
 
 function Register() {
     const [form] = Form.useForm()
+    const navigate = useNavigate()
 
     const onFinish = async (values: any) => {
         try {
@@ -19,6 +21,7 @@ function Register() {
             console.log('Server response:', response.data)
             message.success('Registration successful')
             form.resetFields()
+            navigate('/home')
         } catch (error) {
             // Handle any errors that occur during the POST request
             console.error('Error:', error)
@@ -208,10 +211,6 @@ function Register() {
                         {
                             required: true,
                             message: 'Please enter your phone number',
-                        },
-                        {
-                            pattern: /^[0-9]+$/,
-                            message: 'Phone number must contain only digits',
                         },
                         { validator: checkNumberInUse },
                     ]}

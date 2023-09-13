@@ -35,13 +35,21 @@ BEGIN
         date_joined DATE,
         birthdate DATE NOT NULL,
         employment_status VARCHAR(32),
-        attendance JSON
+        embedding BLOB,
         FOREIGN KEY (department, site) REFERENCES Department(name, site)
+    );
+
+    CREATE TABLE Attendance (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        attendance_date DATE NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES User(id)
     );
 END;
 
 CREATE PROCEDURE DropAllTables()
 BEGIN
+    DROP TABLE Attendance;
     DROP TABLE User;
     DROP TABLE Department;
 END;
@@ -64,30 +72,48 @@ CREATE PROCEDURE InsertUser(
   OUT last_inserted_id INT
 )
 BEGIN
-  INSERT INTO User (
-    firstname,
-    lastname,
-    email,
-    username,
-    street_address,
-    city,
-    country,
-    phone_number,
-    birthdate
-  )
-  VALUES (
-    firstname,
-    lastname,
-    email,
-    username,
-    street_address,
-    city,
-    country,
-    phone_number,
-    birthdate
-  );
+    INSERT INTO User (
+        firstname,
+        lastname,
+        email,
+        username,
+        street_address,
+        city,
+        country,
+        phone_number,
+        birthdate
+    )
+    VALUES (
+        firstname,
+        lastname,
+        email,
+        username,
+        street_address,
+        city,
+        country,
+        phone_number,
+        birthdate
+    );
 
-  SET last_inserted_id = LAST_INSERT_ID();
+    SET last_inserted_id = LAST_INSERT_ID();
+END;
+
+CREATE PROCEDURE InsertAttendance(
+    IN insertedDate DATE,
+    IN username VARCHAR(64),
+    OUT last_inserted_id INT
+)
+BEGIN
+    INSERT INTO Attendance (
+        user_id,
+        attendance_date
+    )
+    VALUES (
+        (SELECT id FROM User WHERE User.username = username),
+        insertedDate
+    );
+
+    SET last_inserted_id = LAST_INSERT_ID();
 END;
 
 CREATE PROCEDURE GetEmployeeIDsInDepartment(
@@ -106,12 +132,14 @@ END;
 
 SELECT * FROM User;
 SELECT * FROM Department;
+SELECT * FROM Attendance;
 
 DROP PROCEDURE InsertUser
 DROP PROCEDURE InsertDepartment
 DROP PROCEDURE GetEmployeeIDsInDepartment
 DROP PROCEDURE CreateAllTables
 DROP PROCEDURE DropAllTables
+DROP PROCEDURE InsertAttendance
 
 CALL DropAllTables
 CALL CreateAllTables
@@ -120,5 +148,4 @@ CALL InsertDepartment('HR', 'Maadi Technology Park', 'active');
 CALL InsertDepartment('HR', 'Smart Village', 'active');
 CALL InsertDepartment('Application', 'Maadi Technology Park', 'active');
 CALL GetEmployeeIDsInDepartment('HR', 'Maadi Technology Park');
-
-TRUNCATE TABLE User;
+CALL InsertAttendance('2023-09-12', 'ahmedmk11', @out)
