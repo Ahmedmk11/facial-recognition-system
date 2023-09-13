@@ -5,6 +5,6 @@ import RouteSwitch from './RouteSwitch'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
-            <RouteSwitch />
+        <RouteSwitch />
     </BrowserRouter>
 )

@@ -1,3 +1,67 @@
+body.light {
+  --navbar-color: rgb(86, 86, 255);
+  --navbar-items-color: rgb(255, 255, 255);
+}
 
+#navbar-component {
+  width: 100%;
+  height: 75px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 21px;
+  background-color: var(--navbar-color);
+  color: var(--navbar-items-color);
+}
+#navbar-component img {
+  height: 32px;
+  width: 10%;
+}
+#navbar-component #nav-items {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 26px;
+  width: 90%;
+  font-size: 18px;
+}
+#navbar-component #nav-items #nav-items-left {
+  width: 40%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 26px;
+}
+#navbar-component #nav-items #nav-items-left p {
+  cursor: pointer;
+}
+#navbar-component #nav-items #nav-items-right {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 26px;
+  margin-right: 52px;
+}
+#navbar-component #nav-items #nav-items-right p {
+  cursor: pointer;
+}
+#navbar-component #nav-items #nav-items-right .ant-btn {
+  height: 45px;
+  font-size: 18px;
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  justify-content: space-evenly;
+  align-items: center;
+  color: var(--navbar-items-color);
+}
+#navbar-component #nav-items #nav-items-right .ant-btn p {
+  margin: 0%;
+}
 
 /*# sourceMappingURL=components.css.map */
