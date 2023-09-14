@@ -13,6 +13,8 @@ import Login from './pages/Login'
 import Logout from './pages/Logout'
 import Register from './pages/Register'
 import AuthGuard from './AuthGuard'
+import Profile from './pages/Profile'
+import Attendance from './pages/Attendance'
 
 const RouteSwitch = () => {
     const location = useLocation()
@@ -82,6 +84,24 @@ const RouteSwitch = () => {
                     <AuthGuard
                         isAuthenticated={!isAuthenticated}
                         targetPage={<Login />}
+                    />
+                }
+            />
+            <Route
+                path='/profile'
+                element={
+                    <AuthGuard
+                        isAuthenticated={isAuthenticated}
+                        targetPage={<Profile />}
+                    />
+                }
+            />
+            <Route
+                path='/attendance'
+                element={
+                    <AuthGuard
+                        isAuthenticated={isAuthenticated}
+                        targetPage={<Attendance />}
                     />
                 }
             />

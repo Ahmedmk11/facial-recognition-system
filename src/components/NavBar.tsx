@@ -1,18 +1,33 @@
 import React, { useEffect, useState } from 'react'
-import { Form, Input, Button, DatePicker, message } from 'antd'
+import {
+    Form,
+    Input,
+    Button,
+    DatePicker,
+    message,
+    Dropdown,
+    Space,
+    Badge,
+    MenuProps,
+    Divider,
+} from 'antd'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
-import IconImg from '../assets/images/ph.svg'
+import IconImg from '../assets/images/logo.svg'
 import moonIcn from '../assets/icons/moon.svg'
 import sunIcn from '../assets/icons/sun.svg'
+import notificationsIcn from '../assets/icons/notifications.svg'
 
 const SunIcon = () => <img style={{ width: 20, height: 20 }} src={sunIcn} />
 const MoonIcon = () => <img style={{ width: 20, height: 20 }} src={moonIcn} />
 
 function NavBar() {
     const navigate = useNavigate()
-    const [theme, setTheme] = useState('light')
+    const page = window.location.pathname.replace('/', '')
+    const [theme, setTheme] = useState(
+        document.body.classList.contains('light') ? 'light' : 'dark'
+    )
 
     const handleLogout = async () => {
         try {
@@ -42,18 +57,62 @@ function NavBar() {
         }
     }
 
+    const getAdminNotifications = () => {
+        return []
+    }
+
+    const notifs: MenuProps['items'] = [
+        {
+            label: (
+                <>
+                    <p id='notifs-p'>
+                        You have {getAdminNotifications()?.length ?? 0}{' '}
+                        notifications.{' '}
+                    </p>
+                    <Divider style={{ margin: '0' }} />
+                </>
+            ),
+            key: 'tasksDue',
+        },
+    ]
+
     return (
         <div id='navbar-component'>
-            <img src={IconImg} alt='icon' />
+            <img
+                src={IconImg}
+                className={theme === 'light' ? 'logo-light' : 'logo-dark'}
+                alt='icon'
+            />
             <div id='nav-items'>
                 <div id='nav-items-left'>
                     <p
+                        className={
+                            page === 'home'
+                                ? 'underlined-item'
+                                : 'hover-underline-animation'
+                        }
+                        onClick={() => {
+                            navigate('/home')
+                        }}>
+                        Home
+                    </p>
+                    <p
+                        className={
+                            page === 'profile'
+                                ? 'underlined-item'
+                                : 'hover-underline-animation'
+                        }
                         onClick={() => {
                             navigate('/profile')
                         }}>
                         Profile
                     </p>
                     <p
+                        className={
+                            page === 'attendance'
+                                ? 'underlined-item'
+                                : 'hover-underline-animation'
+                        }
                         onClick={() => {
                             navigate('/attendance')
                         }}>
@@ -61,13 +120,57 @@ function NavBar() {
                     </p>
                 </div>
                 <div id='nav-items-right'>
+                    <Dropdown
+                        menu={{ items: notifs }}
+                        trigger={['click']}
+                        placement='bottomLeft'
+                        className='notifs-dropdown'>
+                        <a onClick={(e) => e.preventDefault()}>
+                            <Space size='middle'>
+                                <Badge
+                                    count={getAdminNotifications().length + 1}
+                                    style={
+                                        theme === 'light'
+                                            ? {
+                                                  borderColor: 'white',
+                                                  minWidth: '18px',
+                                                  height: '18px',
+                                              }
+                                            : {
+                                                  borderColor: 'black',
+                                                  minWidth: '18px',
+                                                  height: '18px',
+                                              }
+                                    }>
+                                    <img
+                                        id='notification-img'
+                                        src={notificationsIcn}
+                                        alt='Icon for notificatons'
+                                        className={
+                                            theme === 'light'
+                                                ? 'notifs-light'
+                                                : 'notifs-dark'
+                                        }
+                                    />
+                                </Badge>
+                            </Space>
+                        </a>
+                    </Dropdown>
                     <Button
                         type='text'
                         onClick={handleTheme}
                         icon={theme === 'light' ? <SunIcon /> : <MoonIcon />}>
                         {theme === 'light' ? <p>Light</p> : <p>Dark</p>}
                     </Button>
-                    <p onClick={handleLogout}>Logout</p>
+                    <p
+                        className={
+                            page === 'logout'
+                                ? 'underlined-item'
+                                : 'hover-underline-animation'
+                        }
+                        onClick={handleLogout}>
+                        Logout
+                    </p>
                 </div>
             </div>
         </div>
