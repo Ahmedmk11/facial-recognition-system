@@ -8,6 +8,7 @@ from typing import *
 from flask import Flask, make_response, redirect, request, jsonify, session, send_from_directory, url_for
 from flask_cors import CORS
 from mysql.connector.connection import MySQLConnection
+import mysql.connector
 
 app = Flask(__name__, static_folder='../dist')
 CORS(app, origins="http://127.0.0.1:5173", supports_credentials=True)
@@ -25,6 +26,35 @@ def create_db_connection() -> MySQLConnection:
     )
     return connection
 
+def call_procedure(procedure_name: str, *params: str):
+    # Connect to the database
+    conn = create_db_connection()
+
+    # Create a cursor
+    cursor = conn.cursor()
+
+    # Call the stored procedure
+    cursor.callproc(procedure_name, params)
+
+    # Use stored_results to get the result set
+    results = cursor.stored_results()
+    
+    # Fetch each result set
+    result_sets = []
+    for result in results:
+        result_sets.append(result.fetchall())
+
+    # Close the cursor and connection
+    cursor.close()
+    conn.close()
+
+    # Print the results for debugging
+    for result_set in result_sets:
+        print(result_set)
+
+    return result_sets
+
+
 def get_data(query: str) -> Dict[str, Any]:
     connection = create_db_connection()
     cursor = connection.cursor(dictionary=True)
@@ -36,36 +66,21 @@ def get_data(query: str) -> Dict[str, Any]:
     cursor.close()
     connection.close()
 
-    return jsonify(data)
-    
-import mysql.connector
+    return data
 
 def call_insert_procedure(
     procedure_name: str,
     *params: str
 ):
-    """
-    Calls an SQL insert procedure with the provided parameters.
-
-    Args:
-        procedure_name (str): The name of the SQL insert procedure.
-        params (str): Parameter values as individual strings.
-
-    Returns:
-        int: The last inserted row's ID (auto-increment primary key).
-    """
     try:
         connection = create_db_connection()
         cursor = connection.cursor()
 
-        # Create an OUT parameter variable to capture the result
-        out_param = 0  # Initialize with a default value
+        out_param = 0
 
         params_string = ', '.join(['%s' for _ in params])
-        # Include the OUT parameter as the last parameter
         cursor.callproc(procedure_name, params + (out_param,))
 
-        # Fetch the OUT parameter value
         cursor.execute("SELECT @last_inserted_id")
         last_inserted_id = cursor.fetchone()[0]
 
@@ -156,25 +171,19 @@ def login():
         error_response = {'error': 'Invalid or missing data'}
         return jsonify(error_response), 400
 
-    conn = create_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute('SELECT * FROM User WHERE username = %s', (username,))
-    queryResult = cursor.fetchone()
-
-    cursor.close()
-    conn.close()
+    queryResult = call_procedure('GetAllUsersByUsername', username)
 
     if not queryResult:
         return jsonify({'message': f'We couldn\'t find an account with username: {username}'}), 404
 
     # Store user data in the session
+    print('q', queryResult)
     session['user'] = {
-        'user_id': queryResult[0],
-        'username': queryResult[4],
-        'email': queryResult[3],
-        'firstname': queryResult[1],
-        'lastname': queryResult[2]
+        'user_id': queryResult[0][0][0],
+        'username': queryResult[0][0][4],
+        'email': queryResult[0][0][3],
+        'firstname': queryResult[0][0][1],
+        'lastname': queryResult[0][0][2]
     }
     print(session.get('user'))
     return jsonify({'message': 'Login successful'})
@@ -207,14 +216,7 @@ def check_email():
     if not email:
         return jsonify({'emailInUse': False})
     
-    conn = create_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute('SELECT COUNT(*) FROM User WHERE email = %s', (email,))
-    count = cursor.fetchone()[0]
-
-    cursor.close()
-    conn.close()
+    count = call_procedure('GetEmailCount' , email)
 
     if count != 0:
         return jsonify({'emailInUse': True})
@@ -227,15 +229,8 @@ def check_username():
     
     if not username:
         return jsonify({'usernameInUse': False})
-    
-    conn = create_db_connection()
-    cursor = conn.cursor()
 
-    cursor.execute('SELECT COUNT(*) FROM User WHERE username = %s', (username,))
-    count = cursor.fetchone()[0]
-
-    cursor.close()
-    conn.close()
+    count = call_procedure('GetUsernameCount', username)
 
     if count != 0:
         return jsonify({'usernameInUse': True})
@@ -249,15 +244,8 @@ def check_number():
     if not number:
         return jsonify({'numberInUse': False})
     
-    conn = create_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute('SELECT COUNT(*) FROM User WHERE phone_number = %s', (number,))
-    count = cursor.fetchone()[0]
-
-    cursor.close()
-    conn.close()
-
+    count = call_procedure('GetPhoneNumberCount', number)
+    print('count', count)
     if count != 0:
         return jsonify({'numberInUse': True})
     
@@ -269,20 +257,30 @@ def check_username_exists():
     
     if not username:
         return jsonify({'username_exists': False})
-    
-    conn = create_db_connection()
-    cursor = conn.cursor()
 
-    cursor.execute('SELECT COUNT(*) FROM User WHERE username = %s', (username,))
-    count = cursor.fetchone()[0]
-
-    cursor.close()
-    conn.close()
-
+    count = call_procedure('GetUsernameCount' ,username)
+    print('ccc', count)
     if count != 0:
         return jsonify({'username_exists': True})
     
     return jsonify({'username_exists': False})
+
+@app.route('/api/check-role', methods=['GET'])
+def check_role():
+    uid = session['user']['user_id']
+    if not uid:
+        return jsonify({'error': 'No user found'})
+    
+    role = call_procedure('GetUserRole' ,uid)
+    print('role', role)
+    if not role:
+        return jsonify({'error': 'No role found'})
+    
+    return jsonify({'role': role})
+
+@app.route('/api/get-all-users', methods=['GET'])
+def get_all_users():
+    pass
 
 # ---------------------------------------
 

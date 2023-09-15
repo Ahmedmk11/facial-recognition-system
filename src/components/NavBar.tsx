@@ -18,6 +18,7 @@ import IconImg from '../assets/images/logo.svg'
 import moonIcn from '../assets/icons/moon.svg'
 import sunIcn from '../assets/icons/sun.svg'
 import notificationsIcn from '../assets/icons/notifications.svg'
+import { checkUserRole } from '../utils/CheckRole'
 
 const SunIcon = () => <img style={{ width: 20, height: 20 }} src={sunIcn} />
 const MoonIcon = () => <img style={{ width: 20, height: 20 }} src={moonIcn} />
@@ -28,6 +29,17 @@ function NavBar() {
     const [theme, setTheme] = useState(
         document.body.classList.contains('light') ? 'light' : 'dark'
     )
+    const [role, setRole] = useState<any>(null)
+
+    useEffect(() => {
+        checkUserRole()
+            .then((role) => {
+                setRole(role)
+            })
+            .catch((error) => {
+                console.log(error)
+            })
+    }, [])
 
     const handleLogout = async () => {
         try {
@@ -120,42 +132,46 @@ function NavBar() {
                     </p>
                 </div>
                 <div id='nav-items-right'>
-                    <Dropdown
-                        menu={{ items: notifs }}
-                        trigger={['click']}
-                        placement='bottomLeft'
-                        className='notifs-dropdown'>
-                        <a onClick={(e) => e.preventDefault()}>
-                            <Space size='middle'>
-                                <Badge
-                                    count={getAdminNotifications().length + 1}
-                                    style={
-                                        theme === 'light'
-                                            ? {
-                                                  borderColor: 'white',
-                                                  minWidth: '18px',
-                                                  height: '18px',
-                                              }
-                                            : {
-                                                  borderColor: 'black',
-                                                  minWidth: '18px',
-                                                  height: '18px',
-                                              }
-                                    }>
-                                    <img
-                                        id='notification-img'
-                                        src={notificationsIcn}
-                                        alt='Icon for notificatons'
-                                        className={
-                                            theme === 'light'
-                                                ? 'notifs-light'
-                                                : 'notifs-dark'
+                    {role === 'employee' ? null : (
+                        <Dropdown
+                            menu={{ items: notifs }}
+                            trigger={['click']}
+                            placement='bottomLeft'
+                            className='notifs-dropdown'>
+                            <a onClick={(e) => e.preventDefault()}>
+                                <Space size='middle'>
+                                    <Badge
+                                        count={
+                                            getAdminNotifications().length + 1
                                         }
-                                    />
-                                </Badge>
-                            </Space>
-                        </a>
-                    </Dropdown>
+                                        style={
+                                            theme === 'light'
+                                                ? {
+                                                      borderColor: 'white',
+                                                      minWidth: '18px',
+                                                      height: '18px',
+                                                  }
+                                                : {
+                                                      borderColor: 'black',
+                                                      minWidth: '18px',
+                                                      height: '18px',
+                                                  }
+                                        }>
+                                        <img
+                                            id='notification-img'
+                                            src={notificationsIcn}
+                                            alt='Icon for notificatons'
+                                            className={
+                                                theme === 'light'
+                                                    ? 'notifs-light'
+                                                    : 'notifs-dark'
+                                            }
+                                        />
+                                    </Badge>
+                                </Space>
+                            </a>
+                        </Dropdown>
+                    )}
                     <Button
                         type='text'
                         onClick={handleTheme}

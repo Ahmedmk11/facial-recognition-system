@@ -9,4 +9,15 @@
   align-items: center;
 }
 
+#profile-page #profile-page-content {
+  width: 100%;
+  height: 100%;
+}
+#profile-page #profile-page-content .ant-select {
+  width: 200px !important;
+}
+#profile-page #profile-page-content .ant-select-selection-item {
+  display: none !important;
+}
+
 /*# sourceMappingURL=pages.css.map */

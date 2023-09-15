@@ -8,3 +8,20 @@
     justify-content: space-between;
     align-items: center;
 }
+
+// ---------------------------------------
+// Profile
+// ---------------------------------------
+
+#profile-page {
+    #profile-page-content {
+        width: 100%;
+        height: 100%;
+        .ant-select {
+            width: 200px !important;
+        }
+        .ant-select-selection-item {
+            display: none !important;
+        }
+    }
+}
