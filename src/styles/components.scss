@@ -15,8 +15,13 @@
     padding: 21px;
     background-color: var(--navbar-color);
     color: var(--navbar-items-color);
-    img {
+    .logo-light,
+    .logo-dark {
         width: 8%;
+        min-width: 120px;
+    }
+    p {
+        margin: 0%;
     }
     #nav-items {
         display: flex;
@@ -115,6 +120,12 @@
 .underlined-item {
     text-decoration: underline;
     text-underline-offset: 5px;
+}
+
+.ant-button-icon {
+    img {
+        width: fit-content;
+    }
 }
 
 // ---------------------------------------

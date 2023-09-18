@@ -31,17 +31,19 @@
             align-items: center;
             justify-content: flex-start;
             .ant-select {
-                width: 80% !important;
+                width: 85% !important;
             }
             .ant-select-selection-item {
                 display: none !important;
             }
         }
         #profile-page-content-right {
+            margin-right: 8px;
             box-sizing: border-box;
             padding: 26px;
             width: 80%;
             height: 100%;
+            min-height: fit-content;
             border-radius: 26px;
             -webkit-border-radius: 26px;
             -moz-border-radius: 26px;
@@ -52,6 +54,40 @@
             flex-direction: row;
             align-items: center;
             justify-content: space-between;
+            .ppcr-title {
+                font-weight: 700;
+                color: var(--ppcr-title);
+            }
+            hr {
+                width: 95%;
+            }
+            .custom-row {
+                height: 75px;
+            }
+            #username {
+                font-weight: 700;
+                margin-top: 0%;
+            }
+            h1 {
+                margin-bottom: 0%;
+            }
+            .custom-button {
+                background-color: var(--navbar-color);
+                color: var(--button-text);
+                transition: background-color 0.3s ease;
+                -webkit-transition: background-color 0.3s ease;
+                -moz-transition: background-color 0.3s ease;
+                -ms-transition: background-color 0.3s ease;
+                -o-transition: background-color 0.3s ease;
+                &:hover {
+                    background-color: darkblue !important;
+                }
+                &:active {
+                    background-color: royalblue !important;
+                    box-shadow: none !important;
+                    outline: none !important;
+                }
+            }
         }
     }
 }

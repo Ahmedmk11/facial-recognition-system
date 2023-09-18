@@ -1,12 +1,16 @@
 body.light {
   --navbar-color: rgb(86, 86, 255);
-  --navbar-items-color: rgb(255, 255, 255);
+  --navbar-items-color: rgba(255, 255, 255, 0.95);
   --profile-right-bg: #efefef;
   --profile-picture-add: #dfdfdf;
   --field-label: #b6b6b6;
   --field-content: rgba(0, 0, 0, 0.8);
   --profile-picture: #d9d9d9;
   --profile-picture-bottom: #c9c9c9;
+  --ppcr-title: #a5a5a5;
+  --button-text: rgba(255, 255, 255, 0.95);
+  --button-hover: darkblue;
+  --button-active: royalblue;
 }
 
 body.dark {
@@ -25,8 +29,13 @@ body.dark {
   background-color: var(--navbar-color);
   color: var(--navbar-items-color);
 }
-#navbar-component img {
+#navbar-component .logo-light,
+#navbar-component .logo-dark {
   width: 8%;
+  min-width: 120px;
+}
+#navbar-component p {
+  margin: 0%;
 }
 #navbar-component #nav-items {
   display: flex;
@@ -125,6 +134,10 @@ body.dark {
 .underlined-item {
   text-decoration: underline;
   text-underline-offset: 5px;
+}
+
+.ant-button-icon img {
+  width: fit-content;
 }
 
 .field-component {

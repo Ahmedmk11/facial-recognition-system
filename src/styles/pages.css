@@ -28,16 +28,18 @@
   justify-content: flex-start;
 }
 #profile-page #profile-page-content #profile-page-content-left .ant-select {
-  width: 80% !important;
+  width: 85% !important;
 }
 #profile-page #profile-page-content #profile-page-content-left .ant-select-selection-item {
   display: none !important;
 }
 #profile-page #profile-page-content #profile-page-content-right {
+  margin-right: 8px;
   box-sizing: border-box;
   padding: 26px;
   width: 80%;
   height: 100%;
+  min-height: fit-content;
   border-radius: 26px;
   -webkit-border-radius: 26px;
   -moz-border-radius: 26px;
@@ -48,6 +50,40 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+}
+#profile-page #profile-page-content #profile-page-content-right .ppcr-title {
+  font-weight: 700;
+  color: var(--ppcr-title);
+}
+#profile-page #profile-page-content #profile-page-content-right hr {
+  width: 95%;
+}
+#profile-page #profile-page-content #profile-page-content-right .custom-row {
+  height: 75px;
+}
+#profile-page #profile-page-content #profile-page-content-right #username {
+  font-weight: 700;
+  margin-top: 0%;
+}
+#profile-page #profile-page-content #profile-page-content-right h1 {
+  margin-bottom: 0%;
+}
+#profile-page #profile-page-content #profile-page-content-right .custom-button {
+  background-color: var(--navbar-color);
+  color: var(--button-text);
+  transition: background-color 0.3s ease;
+  -webkit-transition: background-color 0.3s ease;
+  -moz-transition: background-color 0.3s ease;
+  -ms-transition: background-color 0.3s ease;
+  -o-transition: background-color 0.3s ease;
+}
+#profile-page #profile-page-content #profile-page-content-right .custom-button:hover {
+  background-color: darkblue !important;
+}
+#profile-page #profile-page-content #profile-page-content-right .custom-button:active {
+  background-color: royalblue !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 /*# sourceMappingURL=pages.css.map */
