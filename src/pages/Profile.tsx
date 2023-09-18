@@ -5,6 +5,8 @@ import NavBar from '../components/NavBar'
 import { checkUserRole } from '../utils/CheckRole'
 import { Select } from 'antd'
 
+import plusIcnLight from '../assets/icons/plus-light.svg'
+
 function Profile() {
     const navigate = useNavigate()
     const [role, setRole] = useState<any>(null)
@@ -45,20 +47,23 @@ function Profile() {
             <NavBar />
             <div id='profile-page-content'>
                 {role === 'employee' ? null : (
-                    <Select
-                        mode='multiple'
-                        style={{ width: '100%' }}
-                        placeholder='Select options'
-                        value={selectedOptions}
-                        onChange={handleOptionSelect}>
-                        <Option value='selectAll'>Select All</Option>
-                        {options.map((option) => (
-                            <Option key={option.value} value={option.value}>
-                                {option.label}
-                            </Option>
-                        ))}
-                    </Select>
+                    <div id='profile-page-content-left'>
+                        <Select
+                            mode='multiple'
+                            style={{ width: '100%' }}
+                            placeholder='Select options'
+                            value={selectedOptions}
+                            onChange={handleOptionSelect}>
+                            <Option value='selectAll'>Select All</Option>
+                            {options.map((option) => (
+                                <Option key={option.value} value={option.value}>
+                                    {option.label}
+                                </Option>
+                            ))}
+                        </Select>
+                    </div>
                 )}
+                <div id='profile-page-content-right'></div>
             </div>
         </div>
     )

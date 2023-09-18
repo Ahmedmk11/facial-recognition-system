@@ -15,13 +15,43 @@
 
 #profile-page {
     #profile-page-content {
+        box-sizing: border-box;
+        padding: 12px 12px 12px 0px;
         width: 100%;
         height: 100%;
-        .ant-select {
-            width: 200px !important;
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: space-between;
+        #profile-page-content-left {
+            width: 20%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            .ant-select {
+                width: 80% !important;
+            }
+            .ant-select-selection-item {
+                display: none !important;
+            }
         }
-        .ant-select-selection-item {
-            display: none !important;
+        #profile-page-content-right {
+            box-sizing: border-box;
+            padding: 26px;
+            width: 80%;
+            height: 100%;
+            border-radius: 26px;
+            -webkit-border-radius: 26px;
+            -moz-border-radius: 26px;
+            -ms-border-radius: 26px;
+            -o-border-radius: 26px;
+            background-color: var(--profile-right-bg);
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
         }
     }
 }
