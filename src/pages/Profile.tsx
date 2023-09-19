@@ -1,4 +1,4 @@
-import { Button, Dropdown, Input } from 'antd'
+import { Button, Divider, Dropdown, Input } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import NavBar from '../components/NavBar'
@@ -10,14 +10,23 @@ import cancelIcn from '../assets/icons/cancel.svg'
 import doneIcn from '../assets/icons/done.svg'
 import ProfilePicture from '../components/ProfilePicture'
 import Field from '../components/Field'
+import { checkUserDepartmentAndSite } from '../utils/CheckUserDepartmentAndSite'
+import axios from 'axios'
+import { getAllUsers } from '../utils/GetAllUsers'
+import { getAllDepartments } from '../utils/GetAllDepartments'
+import { capitalizeWords } from '../utils/Capitalize'
 
 function Profile() {
     const navigate = useNavigate()
+    const { Option, OptGroup } = Select
+
     const [role, setRole] = useState<any>(null)
-    const [viewedUser, setViewedUser] = useState<any>(null)
-    const [isAdmin, setIsAdmin] = useState<boolean>(false)
+    const [viewedUserID, setViewedUserID] = useState<any>('')
+    const [isAllowed, setIsAllowed] = useState<boolean>(false)
     const [isEdit, setIsEdit] = useState<boolean>(false)
     const [selectedOptions, setSelectedOptions] = useState<any>([])
+    const [departments, setDepartments] = useState<any>([])
+    const [users, setUsers] = useState<any>([])
 
     const [firstName, setFirstName] = useState<string>('First')
     const [lastName, setLastName] = useState<string>('Last')
@@ -38,36 +47,123 @@ function Profile() {
     const [site, setSite] = useState<string>('Maadi Technology Park')
     const [depStatus, setDepStatus] = useState<string>('active')
 
-    const checkIsAdmin = () => {
+    const combinedOptions: any = []
+
+    const checkDepSiteResponse = async (uid = '') => {
+        try {
+            const nameAndSite = await checkUserDepartmentAndSite(uid)
+            return nameAndSite
+        } catch (error) {
+            console.log(error)
+            return ['', '']
+        }
+    }
+
+    const getUsersResponse = async () => {
+        try {
+            const users = await getAllUsers()
+            return users
+        } catch (error) {
+            console.log(error)
+            return []
+        }
+    }
+
+    const getDepartmentsResponse = async () => {
+        try {
+            const deps = await getAllDepartments()
+            return deps
+        } catch (error) {
+            console.log(error)
+            return []
+        }
+    }
+
+    useEffect(() => {
+        getDepartmentsResponse()
+            .then((departments) => {
+                setDepartments(departments)
+            })
+            .catch((error) => {
+                console.error(error)
+            })
+        getUsersResponse()
+            .then((users) => {
+                setUsers(users)
+            })
+            .catch((error) => {
+                console.error(error)
+            })
+    }, [])
+
+    useEffect(() => {
+        console.log(departments)
+        console.log(users)
+    }, [departments, users])
+
+    const checkIsAllowed = () => {
         if (role == 'super') {
-            setIsAdmin(true)
+            setIsAllowed(true)
         } else if (role == 'employee') {
-            setIsAdmin(false)
-        } else {
-            if (2) {
-                // check if admin department if same as selected user
-                setIsAdmin(true)
+            setIsAllowed(false)
+        } else if (role == 'admin' && selectedOptions.length != 0) {
+            const selectedUid = selectedOptions.split('_')[1]
+            const departmentNameSiteAdmin: any = checkDepSiteResponse()
+            const departmentNameSiteUser: any =
+                checkDepSiteResponse(selectedUid)
+            const departmentNameAdmin = departmentNameSiteAdmin[0]
+            const departmentSiteAdmin = departmentNameSiteAdmin[1]
+            const departmentNameUser = departmentNameSiteUser[0]
+            const departmentSiteUser = departmentNameSiteUser[1]
+            if (
+                departmentNameAdmin == departmentNameUser &&
+                departmentSiteAdmin == departmentSiteUser
+            ) {
+                setIsAllowed(true)
             } else {
-                setIsAdmin(false)
+                setIsAllowed(false)
             }
         }
     }
 
-    const { Option } = Select
+    const filteredOptions = departments.map((department: any) => {
+        const optGroupLabel = `${department[1]}, ${department[2]}`
+        const usersInDepartment = users.filter(
+            (user: any) => user[3] === department[0]
+        )
+        const userOptions = usersInDepartment.map((user: any) => (
+            <Option key={`user_${user[0]}`} value={`user_${user[0]}`}>
+                {user[1]} {user[2]}
+            </Option>
+        ))
 
-    const options = [
-        { value: 'option1', label: 'Option 1' },
-        { value: 'option2', label: 'Option 2' },
-        { value: 'option3', label: 'Option 3' },
-    ]
+        const selectAllOption =
+            usersInDepartment.length > 0 ? null : (
+                <Option
+                    disabled
+                    key={`nodata_${department[0]}`}
+                    value={`nodata_${department[0]}`}>
+                    No Users Found
+                </Option>
+            )
+
+        return (
+            <OptGroup key={`optgroup_${department[0]}`} label={optGroupLabel}>
+                {selectAllOption}
+                {userOptions}
+            </OptGroup>
+        )
+    })
 
     const handleOptionSelect = (selectedValues: any) => {
         if (selectedValues.includes('selectAll')) {
-            if (options.length === selectedOptions.length) {
-                setSelectedOptions([])
-            } else {
-                setSelectedOptions(options.map((option) => option.value))
-            }
+            // Handle "Select All" option
+            const allUserValues = users
+                .filter((user: any) =>
+                    selectedOptions.includes(`user_${user.id}`)
+                )
+                .map((user: any) => `user_${user.id}`)
+            setSelectedOptions([...selectedOptions, ...allUserValues])
         } else {
             setSelectedOptions(selectedValues)
         }
@@ -88,7 +184,7 @@ function Profile() {
     }, [])
 
     useEffect(() => {
-        checkIsAdmin()
+        checkIsAllowed()
     }, [role])
 
     function handleCancel() {
@@ -167,17 +263,34 @@ function Profile() {
                 {role == 'employee' ? null : (
                     <div id='profile-page-content-left'>
                         <Select
-                            mode='multiple'
-                            style={{ width: '100%' }}
-                            placeholder='Select options'
+                            placeholder='Select Users'
+                            allowClear
+                            onChange={handleOptionSelect}
                             value={selectedOptions}
-                            onChange={handleOptionSelect}>
-                            <Option value='selectAll'>Select All</Option>
-                            {options.map((option) => (
-                                <Option key={option.value} value={option.value}>
-                                    {option.label}
-                                </Option>
-                            ))}
+                            filterOption={(inputValue, option) => {
+                                let optionLabel = option?.props?.children || ''
+
+                                // If optionLabel is an array, join its elements into a string
+                                if (Array.isArray(optionLabel)) {
+                                    optionLabel = optionLabel.join('')
+                                }
+
+                                const optgroupLabel = option?.props?.label || ''
+
+                                return (
+                                    (typeof optionLabel === 'string' &&
+                                        optionLabel
+                                            .toLowerCase()
+                                            .includes(
+                                                inputValue.toLowerCase()
+                                            )) ||
+                                    (typeof optgroupLabel === 'string' &&
+                                        optgroupLabel
+                                            .toLowerCase()
+                                            .includes(inputValue.toLowerCase()))
+                                )
+                            }}>
+                            {filteredOptions}
                         </Select>
                     </div>
                 )}
@@ -264,7 +377,7 @@ function Profile() {
                                 ) : (
                                     <h1>Ahmed Mahmoud</h1>
                                 )}
-                                {isEdit && isAdmin ? (
+                                {isEdit && isAllowed ? (
                                     <div className='col-5'>
                                         <Input
                                             type='text'
@@ -343,7 +456,7 @@ function Profile() {
                                     <Field
                                         label='Job Title'
                                         content={jobTitle}
-                                        isEdit={isEdit && isAdmin}
+                                        isEdit={isEdit && isAllowed}
                                         handle={handleJobTitleChange}
                                     />
                                 </div>
@@ -351,7 +464,7 @@ function Profile() {
                                     <Field
                                         label='Date Joined'
                                         content={dateJoined}
-                                        isEdit={isEdit && isAdmin}
+                                        isEdit={isEdit && isAllowed}
                                         handle={handleDateJoinedChange}
                                     />
                                 </div>
@@ -361,7 +474,7 @@ function Profile() {
                                     <Field
                                         label='Role'
                                         content={userRole}
-                                        isEdit={isEdit && isAdmin}
+                                        isEdit={isEdit && isAllowed}
                                         handle={handleUserRoleChange}
                                     />
                                 </div>
@@ -369,7 +482,7 @@ function Profile() {
                                     <Field
                                         label='Status'
                                         content={status}
-                                        isEdit={isEdit && isAdmin}
+                                        isEdit={isEdit && isAllowed}
                                         handle={handleStatusChange}
                                     />
                                 </div>
@@ -387,7 +500,7 @@ function Profile() {
                                     <Field
                                         label='Department'
                                         content={dep}
-                                        isEdit={isEdit && isAdmin}
+                                        isEdit={isEdit && isAllowed}
                                         handle={handleDepChange}
                                     />
                                 </div>
@@ -395,7 +508,7 @@ function Profile() {
                                     <Field
                                         label='Site'
                                         content={site}
-                                        isEdit={isEdit && isAdmin}
+                                        isEdit={isEdit && isAllowed}
                                         handle={handleSiteChange}
                                     />
                                 </div>
@@ -405,7 +518,7 @@ function Profile() {
                                     <Field
                                         label='Status'
                                         content={depStatus}
-                                        isEdit={isEdit && isAdmin}
+                                        isEdit={isEdit && isAllowed}
                                         handle={handleDepStatusChange}
                                     />
                                 </div>

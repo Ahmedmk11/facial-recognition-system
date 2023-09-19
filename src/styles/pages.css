@@ -32,7 +32,7 @@
   width: 85% !important;
 }
 #profile-page #profile-page-content #profile-page-content-left .ant-select-selection-item {
-  display: none !important;
+  max-height: 30px !important;
 }
 #profile-page #profile-page-content #profile-page-content-right {
   margin-right: 8px;

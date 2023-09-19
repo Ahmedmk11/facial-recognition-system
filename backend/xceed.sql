@@ -15,7 +15,7 @@ BEGIN
         id INT AUTO_INCREMENT UNIQUE NOT NULL PRIMARY KEY,
         name VARCHAR(128) NOT NULL,
         site VARCHAR(128) NOT NULL,
-        active VARCHAR(1) NOT NULL
+        dep_status VARCHAR(1) NOT NULL
     );
 
     CREATE TABLE User (
@@ -55,12 +55,12 @@ END;
 
 CREATE PROCEDURE InsertDepartment(IN depName VARCHAR(128), IN depSite VARCHAR(128))
 BEGIN
-    INSERT INTO Department (name, site, status) VALUES (depName, depSite, '1');
+    INSERT INTO Department (name, site, dep_status) VALUES (depName, depSite, '1');
 END;
 
 CREATE PROCEDURE modifyDepartmentStatus(IN depStatus VARCHAR(18))
 BEGIN
-    INSERT INTO Department (status) VALUES (depStatus);
+    INSERT INTO Department (dep_status) VALUES (depStatus);
 END;
 
 CREATE PROCEDURE InsertUser(
@@ -120,16 +120,16 @@ BEGIN
     SET last_inserted_id = LAST_INSERT_ID();
 END;
 
-CREATE PROCEDURE GetEmployeeNamesInDepartment(
+CREATE PROCEDURE GetEmployeeNamesInDepartment( # wrong
     IN departmentName VARCHAR(128),
     IN siteName VARCHAR(128)
 )
 BEGIN
-  SELECT User.name
+  SELECT User.firstname, User.lastname
   FROM User
   INNER JOIN Department
   ON User.department_id = Department.id
-  WHERE Department.status = 'active';
+  WHERE Department.status = '1';
 END;
 
 CREATE PROCEDURE GetDepartmentsInSite(
@@ -138,20 +138,14 @@ CREATE PROCEDURE GetDepartmentsInSite(
 BEGIN
   SELECT name
   FROM Department
-  WHERE Department.site = siteName AND Department.status = 'active';
+  WHERE Department.site = siteName AND Department.status = '1';
 END;
 
 CREATE PROCEDURE GetAllActiveDepartments ()
 BEGIN
   SELECT name
   FROM Department
-  WHERE Department.status = 'active';
-END;
-
-CREATE PROCEDURE GetAllDepartments ()
-BEGIN
-  SELECT name
-  FROM Department;
+  WHERE Department.status = '1';
 END;
 
 CREATE PROCEDURE GetAllUsersByUsername (IN username VARCHAR(64))
@@ -174,9 +168,27 @@ BEGIN
   SELECT COUNT(*) FROM User WHERE phone_number = pnumber;
 END;
 
-CREATE PROCEDURE GetUserRole (IN uid VARCHAR(8))
+CREATE PROCEDURE GetUserRole (IN uid INT)
 BEGIN
   SELECT role FROM User WHERE id = uid;
+END;
+
+CREATE PROCEDURE GetUserDepartmentAndSite (IN uid INT)
+BEGIN
+  SELECT name, site FROM Department
+  INNER JOIN User
+  ON User.department_id = Department.id WHERE User.id = uid;
+END;
+
+CREATE PROCEDURE GetAllUsers ()
+BEGIN
+  SELECT id, firstname, lastname, department_id FROM User;
+END;
+
+CREATE PROCEDURE GetAllDepartments ()
+BEGIN
+    SELECT * FROM Department
+    ORDER BY site ASC, name ASC;
 END;
 
 -- Testing
@@ -202,28 +214,37 @@ DROP PROCEDURE modifyDepartmentStatus;
 DROP PROCEDURE GetEmployeeNamesInDepartment;
 DROP PROCEDURE GetDepartmentsInSite;
 DROP PROCEDURE GetAllActiveDepartments;
-DROP PROCEDURE GetAllDepartments;
 DROP PROCEDURE GetAllUsersByUsername;
 DROP PROCEDURE GetEmailCount;
 DROP PROCEDURE GetUsernameCount;
 DROP PROCEDURE GetPhoneNumberCount;
 DROP PROCEDURE GetUserRole;
+DROP PROCEDURE GetUserDepartmentAndSite;
+DROP PROCEDURE GetAllUsers;
+DROP PROCEDURE GetAllDepartments;
 
 CALL DropAllTables;
 CALL CreateAllTables;
 
-CALL InsertDepartment('HR', 'Maadi Technology Park', 'active');
-CALL InsertDepartment('HR', 'Smart Village', 'active');
-CALL InsertDepartment('Application', 'Maadi Technology Park', 'active');
+CALL GetAllUsersByUsername('ahmedmk11');
+
+CALL GetAllUsers();
+
+CALL InsertDepartment('HR', 'Maadi Technology Park');
+CALL InsertDepartment('HR', 'Smart Village');
+CALL InsertDepartment('Application', 'Smart Village');
 CALL GetEmployeeNamesInDepartment('HR', 'Maadi Technology Park');
 CALL InsertAttendance('2023-09-12', 'ahmedmk11', @out)
 
 CALL GetUsernameCount('ahmedmk11');
 
 UPDATE User
-SET role = 'employee'
-WHERE User.id = 2;
+SET department_id = '1'
+WHERE id = 1;
 
+ALTER TABLE Department CHANGE active dep_status VARCHAR(1);
+
+CALL GetUserDepartmentAndSite(1);
 
 SELECT User.id, User.name FROM User INNER JOIN Department ON User.id = Department.id;
 

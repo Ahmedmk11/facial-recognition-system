@@ -1,18 +1,16 @@
 import axios from 'axios'
 
-export const checkUserRole = () => {
+export const getAllUsers = (uid = '') => {
     return new Promise((resolve, reject) => {
         axios
-            .get('http://127.0.0.1:5000/api/check-role', {
+            .get('http://127.0.0.1:5000/api/get-all-users', {
                 withCredentials: true,
             })
             .then((response) => {
-                let role = response.data.role
-                console.log('role: ', role)
-                resolve(role)
+                let users = response.data.users
+                resolve(users)
             })
             .catch((error) => {
-                console.log("Can't get role: ", error)
                 resolve(null)
             })
     })

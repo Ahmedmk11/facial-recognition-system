@@ -270,15 +270,37 @@ def check_role():
         return jsonify({'error': 'No user found'})
     
     role = call_procedure('GetUserRole' ,uid)
-    print('role', role)
+    print('role', role[0][0][0])
     if not role:
         return jsonify({'error': 'No role found'})
     
-    return jsonify({'role': role})
+    return jsonify({'role': role[0][0][0]})
+
+@app.route('/api/check-name-site', methods=['GET'])
+def check_name_site():
+    uid = request.args.get('uid')
+    if uid == '':
+        uid = session['user']['user_id']
+    
+    if not uid:
+        return jsonify({'error': 'No user found'})
+        
+    
+    [[nameAndSite]] = call_procedure('GetUserDepartmentAndSite' ,uid)
+    print(nameAndSite)
+    return jsonify({'nameAndSite': nameAndSite})
 
 @app.route('/api/get-all-users', methods=['GET'])
-def get_all_users():
-    pass
+def get_users():
+    [users] = call_procedure('GetAllUsers')
+    print(users)
+    return jsonify({'users': users})
+
+@app.route('/api/get-all-departments', methods=['GET'])
+def get_departments():
+    [departments] = call_procedure('GetAllDepartments')
+    print(departments)
+    return jsonify({'departments': departments})
 
 # ---------------------------------------
 
