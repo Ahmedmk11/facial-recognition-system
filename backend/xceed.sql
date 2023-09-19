@@ -221,8 +221,8 @@ CALL InsertAttendance('2023-09-12', 'ahmedmk11', @out)
 CALL GetUsernameCount('ahmedmk11');
 
 UPDATE User
-SET role = 'super'
-WHERE User.id = 1;
+SET role = 'employee'
+WHERE User.id = 2;
 
 
 SELECT User.id, User.name FROM User INNER JOIN Department ON User.id = Department.id;

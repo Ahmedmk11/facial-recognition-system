@@ -1,7 +1,8 @@
 #home-page,
 #profile-page,
 #attendance-page {
-  height: 100%;
+  height: fit-content;
+  min-height: 100%;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -46,20 +47,29 @@
   -ms-border-radius: 26px;
   -o-border-radius: 26px;
   background-color: var(--profile-right-bg);
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
+  margin: auto;
+}
+#profile-page #profile-page-content #profile-page-content-right .form-btns .anticon {
+  margin-right: 8px;
+  width: 16px;
+}
+#profile-page #profile-page-content #profile-page-content-right .edit-icon {
+  cursor: pointer;
 }
 #profile-page #profile-page-content #profile-page-content-right .ppcr-title {
   font-weight: 700;
   color: var(--ppcr-title);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 97%;
 }
 #profile-page #profile-page-content #profile-page-content-right hr {
   width: 95%;
 }
 #profile-page #profile-page-content #profile-page-content-right .custom-row {
-  height: 75px;
+  height: 90px !important;
 }
 #profile-page #profile-page-content #profile-page-content-right #username {
   font-weight: 700;
@@ -78,10 +88,18 @@
   -o-transition: background-color 0.3s ease;
 }
 #profile-page #profile-page-content #profile-page-content-right .custom-button:hover {
-  background-color: darkblue !important;
+  background-color: var(--button-hover) !important;
 }
 #profile-page #profile-page-content #profile-page-content-right .custom-button:active {
-  background-color: royalblue !important;
+  background-color: var(--button-active) !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+#profile-page #profile-page-content #profile-page-content-right .btn-outline-secondary:hover {
+  background-color: var(--button-hover-sec) !important;
+}
+#profile-page #profile-page-content #profile-page-content-right .btn-outline-secondary:active {
+  background-color: var(--button-active-sec) !important;
   box-shadow: none !important;
   outline: none !important;
 }

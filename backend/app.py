@@ -217,8 +217,7 @@ def check_email():
         return jsonify({'emailInUse': False})
     
     count = call_procedure('GetEmailCount' , email)
-
-    if count != 0:
+    if count[0][0][0] != 0:
         return jsonify({'emailInUse': True})
     
     return jsonify({'emailInUse': False})
@@ -232,7 +231,7 @@ def check_username():
 
     count = call_procedure('GetUsernameCount', username)
 
-    if count != 0:
+    if count[0][0][0] != 0:
         return jsonify({'usernameInUse': True})
     
     return jsonify({'usernameInUse': False})
@@ -245,8 +244,7 @@ def check_number():
         return jsonify({'numberInUse': False})
     
     count = call_procedure('GetPhoneNumberCount', number)
-    print('count', count)
-    if count != 0:
+    if count[0][0][0] != 0:
         return jsonify({'numberInUse': True})
     
     return jsonify({'numberInUse': False})

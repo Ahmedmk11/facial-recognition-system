@@ -94,6 +94,9 @@ function NavBar() {
                 src={IconImg}
                 className={theme === 'light' ? 'logo-light' : 'logo-dark'}
                 alt='icon'
+                onClick={() => {
+                    navigate('/home')
+                }}
             />
             <div id='nav-items'>
                 <div id='nav-items-left'>

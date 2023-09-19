@@ -11,6 +11,8 @@ body.light {
   --button-text: rgba(255, 255, 255, 0.95);
   --button-hover: darkblue;
   --button-active: royalblue;
+  --button-hover-sec: #5a6268;
+  --button-active-sec: #4e555b;
 }
 
 body.dark {
@@ -33,6 +35,7 @@ body.dark {
 #navbar-component .logo-dark {
   width: 8%;
   min-width: 120px;
+  cursor: pointer;
 }
 #navbar-component p {
   margin: 0%;
@@ -169,7 +172,7 @@ body.dark {
 }
 #profile-picture-component img#camera {
   margin: 12px 0px 0px 12px;
-  opacity: 80%;
+  opacity: 0.7;
 }
 #profile-picture-component .anticon {
   position: absolute;
