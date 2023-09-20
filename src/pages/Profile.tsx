@@ -15,10 +15,13 @@ import axios from 'axios'
 import { getAllUsers } from '../utils/GetAllUsers'
 import { getAllDepartments } from '../utils/GetAllDepartments'
 import { capitalizeWords } from '../utils/Capitalize'
+import { getUserByID } from '../utils/GetUserByID'
+import { dateToString } from '../utils/DateToString'
 
 function Profile() {
     const navigate = useNavigate()
     const { Option, OptGroup } = Select
+    const [currUser, setCurrUser] = useState<any>('')
 
     const [role, setRole] = useState<any>(null)
     const [viewedUserID, setViewedUserID] = useState<any>('')
@@ -27,27 +30,63 @@ function Profile() {
     const [selectedOptions, setSelectedOptions] = useState<any>([])
     const [departments, setDepartments] = useState<any>([])
     const [users, setUsers] = useState<any>([])
+    const [selectedUser, setSelectedUser] = useState<any>([])
 
-    const [firstName, setFirstName] = useState<string>('First')
-    const [lastName, setLastName] = useState<string>('Last')
-    const [userName, setUserName] = useState<string>('username')
+    const [firstName, setFirstName] = useState<string>('n/a')
+    const [lastName, setLastName] = useState<string>('n/a')
+    const [userName, setUserName] = useState<string>('n/a')
 
-    const [email, setEmail] = useState<string>('ahmed@gmail.com')
-    const [phone, setPhone] = useState<string>('01550800848')
-    const [birthdate, setBirthdate] = useState<string>('21 Sept 2002')
-    const [location, setLocation] = useState<string>('cairo')
-    const [address, setAddress] = useState<string>('13 el nour')
+    const [email, setEmail] = useState<string>('n/a')
+    const [phone, setPhone] = useState<string>('n/a')
+    const [birthdate, setBirthdate] = useState<string>('n/a')
+    const [location, setLocation] = useState<string>('n/a')
+    const [address, setAddress] = useState<string>('n/a')
 
-    const [jobTitle, setJobTitle] = useState<string>('Software Engineer')
-    const [dateJoined, setDateJoined] = useState<string>('01 Aug 2023')
-    const [userRole, setUserRole] = useState<string>('role')
-    const [status, setStatus] = useState<string>('active')
+    const [jobTitle, setJobTitle] = useState<string>('n/a')
+    const [dateJoined, setDateJoined] = useState<string>('n/a')
+    const [userRole, setUserRole] = useState<string>('n/a')
+    const [status, setStatus] = useState<string>('n/a')
 
-    const [dep, setDep] = useState<string>('Application')
-    const [site, setSite] = useState<string>('Maadi Technology Park')
-    const [depStatus, setDepStatus] = useState<string>('active')
+    const [dep, setDep] = useState<string>('n/a')
+    const [site, setSite] = useState<string>('n/a')
+    const [depStatus, setDepStatus] = useState<string>('n/a')
 
-    const combinedOptions: any = []
+    useEffect(() => {
+        checkDepSiteResponse(selectedUser[0])
+            .then((departmentNameSiteCurr: any) => {
+                const departmentStateCurr = departmentNameSiteCurr[2]
+                const departmentSiteCurr = departmentNameSiteCurr[1]
+                const departmentNameCurr = departmentNameSiteCurr[0]
+                console.log('wow', departmentNameSiteCurr)
+                setFirstName(selectedUser[1] ? selectedUser[1] : 'n/a')
+                setLastName(selectedUser[2] ? selectedUser[2] : 'n/a')
+                setUserName(selectedUser[4] ? selectedUser[4] : 'n/a')
+                setEmail(selectedUser[3] ? selectedUser[3] : 'n/a')
+                setPhone(selectedUser[9] ? selectedUser[9] : 'n/a')
+                setBirthdate(
+                    dateToString(selectedUser[12])
+                        ? dateToString(selectedUser[12])
+                        : 'n/a'
+                )
+                setLocation(
+                    selectedUser[7] && selectedUser[8]
+                        ? `${selectedUser[7]} / ${selectedUser[8]}`
+                        : 'n/a'
+                )
+                setAddress(selectedUser[6] ? selectedUser[6] : 'n/a')
+                setJobTitle(selectedUser[5] ? selectedUser[5] : 'n/a')
+                setDateJoined(selectedUser[11] ? selectedUser[11] : 'n/a')
+                setUserRole(selectedUser[10] ? selectedUser[10] : 'n/a')
+                setStatus(selectedUser[13] ? selectedUser[13] : 'n/a')
+                setDep(departmentNameCurr ? departmentNameCurr : 'n/a')
+                setSite(departmentSiteCurr ? departmentSiteCurr : 'n/a')
+                setDepStatus(departmentStateCurr ? departmentStateCurr : 'n/a')
+            })
+            .catch((error) => {
+                // Handle errors if the promise is rejected
+                console.error(error)
+            })
+    }, [currUser, selectedUser])
 
     const checkDepSiteResponse = async (uid = '') => {
         try {
@@ -94,12 +133,34 @@ function Profile() {
             .catch((error) => {
                 console.error(error)
             })
+        getUserByID()
+            .then((user) => {
+                setCurrUser(user)
+            })
+            .catch((error) => {
+                console.error(error)
+            })
     }, [])
+
+    useEffect(() => {
+        if (selectedOptions.length > 0) {
+            if (selectedOptions.split('_')[1] != 'undefined') {
+                getUserByID(selectedOptions.split('_')[1])
+                    .then((user) => {
+                        setSelectedUser(user)
+                    })
+                    .catch((error) => {
+                        console.error(error)
+                    })
+            }
+        }
+    }, [selectedOptions])
 
     useEffect(() => {
         console.log(departments)
         console.log(users)
-    }, [departments, users])
+        console.log('selectedUser', selectedUser)
+    }, [departments, users, selectedUser])
 
     const checkIsAllowed = () => {
         if (role == 'super') {
@@ -108,6 +169,7 @@ function Profile() {
             setIsAllowed(false)
         } else if (role == 'admin' && selectedOptions.length != 0) {
             const selectedUid = selectedOptions.split('_')[1]
+            console.log('selectedUidddd', selectedUid)
             const departmentNameSiteAdmin: any = checkDepSiteResponse()
             const departmentNameSiteUser: any =
                 checkDepSiteResponse(selectedUid)
@@ -119,54 +181,63 @@ function Profile() {
                 departmentNameAdmin == departmentNameUser &&
                 departmentSiteAdmin == departmentSiteUser
             ) {
-                setIsAllowed(true)
-            } else {
                 setIsAllowed(false)
             }
         }
     }
 
-    const filteredOptions = departments.map((department: any) => {
-        const optGroupLabel = `${department[1]}, ${department[2]}`
-        const usersInDepartment = users.filter(
-            (user: any) => user[3] === department[0]
+    const filteredOptions = departments
+        .filter(
+            (department: any) =>
+                (role == 'admin' && department[0] == 1) || role == 'super'
         )
-        const userOptions = usersInDepartment.map((user: any) => (
-            <Option key={`user_${user[0]}`} value={`user_${user[0]}`}>
-                {user[1]} {user[2]}
-            </Option>
-        ))
-
-        const selectAllOption =
-            usersInDepartment.length > 0 ? null : (
-                <Option
-                    disabled
-                    key={`nodata_${department[0]}`}
-                    value={`nodata_${department[0]}`}>
-                    No Users Found
-                </Option>
+        .map((department: any) => {
+            const optGroupLabel = `${department[1]}, ${department[2]}`
+            const usersInDepartment = users.filter(
+                (user: any) => user[3] === department[0]
             )
+            const userOptions = usersInDepartment
+                .filter((user: any) => {
+                    if (currUser[10] === 'super') {
+                        return true
+                    } else if (
+                        currUser[10] === 'admin' &&
+                        user[10] === 'employee'
+                    ) {
+                        return true
+                    } else if (currUser[0] == user[0]) {
+                        return true
+                    }
+                    return false
+                })
+                .map((user: any) => (
+                    <Option key={`user_${user[0]}`} value={`user_${user[0]}`}>
+                        {user[1]} {user[2]}
+                    </Option>
+                ))
 
-        return (
-            <OptGroup key={`optgroup_${department[0]}`} label={optGroupLabel}>
-                {selectAllOption}
-                {userOptions}
-            </OptGroup>
-        )
-    })
+            const selectAllOption =
+                usersInDepartment.length > 0 ? null : (
+                    <Option
+                        disabled
+                        key={`nodata_${department[0]}`}
+                        value={`nodata_${department[0]}`}>
+                        No Users Found
+                    </Option>
+                )
+
+            return (
+                <OptGroup
+                    key={`optgroup_${department[0]}`}
+                    label={optGroupLabel}>
+                    {selectAllOption}
+                    {userOptions}
+                </OptGroup>
+            )
+        })
 
     const handleOptionSelect = (selectedValues: any) => {
-        if (selectedValues.includes('selectAll')) {
-            // Handle "Select All" option
-            const allUserValues = users
-                .filter((user: any) =>
-                    selectedOptions.includes(`user_${user.id}`)
-                )
-                .map((user: any) => `user_${user.id}`)
-            setSelectedOptions([...selectedOptions, ...allUserValues])
-        } else {
-            setSelectedOptions(selectedValues)
-        }
+        setSelectedOptions(selectedValues)
     }
 
     const handleEdit = () => {
@@ -255,6 +326,10 @@ function Profile() {
         setDepStatus(e.target.value)
     }
 
+    useEffect(() => {
+        setSelectedOptions(`user_${currUser[0]}`)
+    }, [currUser])
+
     return (
         <div id='profile-page'>
             <NavBar />
@@ -263,8 +338,8 @@ function Profile() {
                 {role == 'employee' ? null : (
                     <div id='profile-page-content-left'>
                         <Select
-                            placeholder='Select Users'
-                            allowClear
+                            disabled={isEdit}
+                            defaultValue={`user_${currUser[0]}`}
                             onChange={handleOptionSelect}
                             value={selectedOptions}
                             filterOption={(inputValue, option) => {
@@ -375,7 +450,9 @@ function Profile() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <h1>Ahmed Mahmoud</h1>
+                                    <h1>
+                                        {firstName} {lastName}
+                                    </h1>
                                 )}
                                 {isEdit && isAllowed ? (
                                     <div className='col-5'>
@@ -388,7 +465,7 @@ function Profile() {
                                         />
                                     </div>
                                 ) : (
-                                    <p id='username'>@ahmedmk11</p>
+                                    <p id='username'>@{userName}</p>
                                 )}
                             </div>
                             <div className='row'>
@@ -473,7 +550,14 @@ function Profile() {
                                 <div className='col'>
                                     <Field
                                         label='Role'
-                                        content={userRole}
+                                        content={
+                                            userRole == 'super'
+                                                ? 'Super Admin'
+                                                : userRole
+                                                      .charAt(0)
+                                                      .toUpperCase() +
+                                                  userRole.slice(1)
+                                        }
                                         isEdit={isEdit && isAllowed}
                                         handle={handleUserRoleChange}
                                     />
@@ -481,7 +565,13 @@ function Profile() {
                                 <div className='col'>
                                     <Field
                                         label='Status'
-                                        content={status}
+                                        content={
+                                            status == '1'
+                                                ? 'Active'
+                                                : status == '0'
+                                                ? 'Inactive'
+                                                : 'n/a'
+                                        }
                                         isEdit={isEdit && isAllowed}
                                         handle={handleStatusChange}
                                     />
@@ -517,7 +607,13 @@ function Profile() {
                                 <div className='col-6'>
                                     <Field
                                         label='Status'
-                                        content={depStatus}
+                                        content={
+                                            depStatus == '1'
+                                                ? 'Active'
+                                                : depStatus == '0'
+                                                ? 'Inactive'
+                                                : 'n/a'
+                                        }
                                         isEdit={isEdit && isAllowed}
                                         handle={handleDepStatusChange}
                                     />

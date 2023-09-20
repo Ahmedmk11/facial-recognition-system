@@ -281,13 +281,12 @@ def check_name_site():
     uid = request.args.get('uid')
     if uid == '':
         uid = session['user']['user_id']
-    
     if not uid:
         return jsonify({'error': 'No user found'})
-        
     
+    print('rrrrrr', uid)
     [[nameAndSite]] = call_procedure('GetUserDepartmentAndSite' ,uid)
-    print(nameAndSite)
+    print('nameAndSite', nameAndSite)
     return jsonify({'nameAndSite': nameAndSite})
 
 @app.route('/api/get-all-users', methods=['GET'])
@@ -301,6 +300,24 @@ def get_departments():
     [departments] = call_procedure('GetAllDepartments')
     print(departments)
     return jsonify({'departments': departments})
+
+@app.route('/api/get-user-id', methods=['GET'])
+def get_user_by_id():
+    uid = request.args.get('uid')
+    if uid == '':
+        uid = session['user']['user_id']
+    
+    if not uid:
+        return jsonify({'error': 'No user found'})
+    
+    [[user]] = call_procedure('GetUserByID', uid)
+    print(
+        f'''
+the uid: {uid}
+the user: {user}
+'''
+    )
+    return jsonify({'user': user})
 
 # ---------------------------------------
 

@@ -153,6 +153,11 @@ BEGIN
   SELECT * FROM User WHERE User.username = username;
 END;
 
+CREATE PROCEDURE GetUserByID (IN uid INT)
+BEGIN
+  SELECT * FROM User WHERE User.id = uid;
+END;
+
 CREATE PROCEDURE GetEmailCount (IN email VARCHAR(128))
 BEGIN
   SELECT COUNT(*) FROM User WHERE User.email = email;
@@ -175,10 +180,12 @@ END;
 
 CREATE PROCEDURE GetUserDepartmentAndSite (IN uid INT)
 BEGIN
-  SELECT name, site FROM Department
+  SELECT name, site, dep_status FROM Department
   INNER JOIN User
   ON User.department_id = Department.id WHERE User.id = uid;
 END;
+
+CALL GetUserDepartmentAndSite(3);
 
 CREATE PROCEDURE GetAllUsers ()
 BEGIN
@@ -193,11 +200,15 @@ END;
 
 -- Testing
 SHOW PROCESSLIST;
-KILL 504;
-KILL 505;
-KILL 507;
-KILL 514;
-KILL 516;
+KILL 2612;
+KILL 2475;
+KILL 2496;
+KILL 2532;
+KILL 2544;
+KILL 2553;
+KILL 2563;
+KILL 2593;
+KILL 2596;
 
 SELECT * FROM Department;
 SELECT * FROM User;
@@ -215,6 +226,7 @@ DROP PROCEDURE GetEmployeeNamesInDepartment;
 DROP PROCEDURE GetDepartmentsInSite;
 DROP PROCEDURE GetAllActiveDepartments;
 DROP PROCEDURE GetAllUsersByUsername;
+DROP PROCEDURE GetUserByID;
 DROP PROCEDURE GetEmailCount;
 DROP PROCEDURE GetUsernameCount;
 DROP PROCEDURE GetPhoneNumberCount;
@@ -228,6 +240,10 @@ CALL CreateAllTables;
 
 CALL GetAllUsersByUsername('ahmedmk11');
 
+CALL GetUserByID(2);
+
+CALL InsertUser('Farah' ,'Mahmoud', 'farah@gmail.com', 'farahmk11', '13 El nour 11, 6', 'Cairo', 'Egypt', '01201201010', '2005-11-25', @pp);
+
 CALL GetAllUsers();
 
 CALL InsertDepartment('HR', 'Maadi Technology Park');
@@ -239,8 +255,8 @@ CALL InsertAttendance('2023-09-12', 'ahmedmk11', @out)
 CALL GetUsernameCount('ahmedmk11');
 
 UPDATE User
-SET department_id = '1'
-WHERE id = 1;
+SET role = 'admin'
+WHERE id = 3;
 
 ALTER TABLE Department CHANGE active dep_status VARCHAR(1);
 
