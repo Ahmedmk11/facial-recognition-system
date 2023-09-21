@@ -161,6 +161,9 @@ body.dark {
 .field-component .field-content {
   color: var(--field-content);
 }
+.field-component .ant-select {
+  min-width: 100%;
+}
 
 #profile-picture-component {
   width: 260px;

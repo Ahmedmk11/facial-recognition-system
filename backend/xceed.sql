@@ -185,11 +185,9 @@ BEGIN
   ON User.department_id = Department.id WHERE User.id = uid;
 END;
 
-CALL GetUserDepartmentAndSite(3);
-
 CREATE PROCEDURE GetAllUsers ()
 BEGIN
-  SELECT id, firstname, lastname, department_id FROM User;
+  SELECT id, firstname, lastname, department_id, role FROM User;
 END;
 
 CREATE PROCEDURE GetAllDepartments ()
@@ -198,17 +196,17 @@ BEGIN
     ORDER BY site ASC, name ASC;
 END;
 
+CREATE PROCEDURE GetDepartmentIDFromNameSite (IN depName VARCHAR(128), IN depSite VARCHAR(128))
+BEGIN
+    SELECT id FROM Department WHERE name = depName AND site = depSite;
+END;
+
 -- Testing
 SHOW PROCESSLIST;
 KILL 2612;
-KILL 2475;
-KILL 2496;
-KILL 2532;
-KILL 2544;
-KILL 2553;
-KILL 2563;
-KILL 2593;
-KILL 2596;
+
+CALL GetAllDepartments();
+
 
 SELECT * FROM Department;
 SELECT * FROM User;
@@ -242,7 +240,7 @@ CALL GetAllUsersByUsername('ahmedmk11');
 
 CALL GetUserByID(2);
 
-CALL InsertUser('Farah' ,'Mahmoud', 'farah@gmail.com', 'farahmk11', '13 El nour 11, 6', 'Cairo', 'Egypt', '01201201010', '2005-11-25', @pp);
+CALL InsertUser('hoho' ,'employee', 'em@gmail.com', 'emp11', '13 El nour 11, 6', 'Cairo', 'Egypt', '0120120142243', '2005-11-25', @pp);
 
 CALL GetAllUsers();
 
@@ -255,8 +253,7 @@ CALL InsertAttendance('2023-09-12', 'ahmedmk11', @out)
 CALL GetUsernameCount('ahmedmk11');
 
 UPDATE User
-SET role = 'admin'
-WHERE id = 3;
+SET employment_status = 1;
 
 ALTER TABLE Department CHANGE active dep_status VARCHAR(1);
 

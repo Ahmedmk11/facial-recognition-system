@@ -150,6 +150,9 @@
     .field-content {
         color: var(--field-content);
     }
+    .ant-select {
+        min-width: 100%;
+    }
 }
 
 // ---------------------------------------

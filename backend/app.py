@@ -319,6 +319,24 @@ the user: {user}
     )
     return jsonify({'user': user})
 
+@app.route('/api/get-dep-id', methods=['GET'])
+def get_dep_id():
+    name = request.args.get('name')
+    site = request.args.get('site')
+    if not name or not site:
+        return jsonify({'error': 'No department found'})
+    
+    [[did]] = call_procedure('GetDepartmentIDFromNameSite', (name, site))
+    return jsonify({'did': did})
+
+# ---------------------------------------
+# PUT requests
+# ---------------------------------------
+
+@app.route('/api/update-user', methods=['PUT'])
+def update_user():
+    pass
+
 # ---------------------------------------
 
 if __name__ == '__main__':

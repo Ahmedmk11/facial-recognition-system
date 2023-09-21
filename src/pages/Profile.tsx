@@ -9,7 +9,6 @@ import { Select } from 'antd'
 import cancelIcn from '../assets/icons/cancel.svg'
 import doneIcn from '../assets/icons/done.svg'
 import ProfilePicture from '../components/ProfilePicture'
-import Field from '../components/Field'
 import { checkUserDepartmentAndSite } from '../utils/CheckUserDepartmentAndSite'
 import axios from 'axios'
 import { getAllUsers } from '../utils/GetAllUsers'
@@ -17,6 +16,8 @@ import { getAllDepartments } from '../utils/GetAllDepartments'
 import { capitalizeWords } from '../utils/Capitalize'
 import { getUserByID } from '../utils/GetUserByID'
 import { dateToString } from '../utils/DateToString'
+import { updateUser } from '../utils/UpdateUser'
+import { getDepartmentID } from '../utils/GetDepartmentIDFromNameSite'
 
 function Profile() {
     const navigate = useNavigate()
@@ -26,6 +27,7 @@ function Profile() {
     const [role, setRole] = useState<any>(null)
     const [viewedUserID, setViewedUserID] = useState<any>('')
     const [isAllowed, setIsAllowed] = useState<boolean>(false)
+    const [isRestricted, setIsRestricted] = useState<boolean>(true)
     const [isEdit, setIsEdit] = useState<boolean>(false)
     const [selectedOptions, setSelectedOptions] = useState<any>([])
     const [departments, setDepartments] = useState<any>([])
@@ -39,7 +41,8 @@ function Profile() {
     const [email, setEmail] = useState<string>('n/a')
     const [phone, setPhone] = useState<string>('n/a')
     const [birthdate, setBirthdate] = useState<string>('n/a')
-    const [location, setLocation] = useState<string>('n/a')
+    const [city, setCity] = useState<string>('n/a')
+    const [country, setCountry] = useState<string>('n/a')
     const [address, setAddress] = useState<string>('n/a')
 
     const [jobTitle, setJobTitle] = useState<string>('n/a')
@@ -49,12 +52,14 @@ function Profile() {
 
     const [dep, setDep] = useState<string>('n/a')
     const [site, setSite] = useState<string>('n/a')
-    const [depStatus, setDepStatus] = useState<string>('n/a')
+
+    const [selectedDepartments, setSelectedDepartments] = useState<any>([])
+    const [selectedRoles, setSelectedRoles] = useState<any>([])
+    const [selectedUserStatus, setSelectedUserStatus] = useState<any>([])
 
     useEffect(() => {
         checkDepSiteResponse(selectedUser[0])
             .then((departmentNameSiteCurr: any) => {
-                const departmentStateCurr = departmentNameSiteCurr[2]
                 const departmentSiteCurr = departmentNameSiteCurr[1]
                 const departmentNameCurr = departmentNameSiteCurr[0]
                 console.log('wow', departmentNameSiteCurr)
@@ -68,11 +73,8 @@ function Profile() {
                         ? dateToString(selectedUser[12])
                         : 'n/a'
                 )
-                setLocation(
-                    selectedUser[7] && selectedUser[8]
-                        ? `${selectedUser[7]} / ${selectedUser[8]}`
-                        : 'n/a'
-                )
+                setCity(selectedUser[7] ? selectedUser[7] : 'n/a')
+                setCountry(selectedUser[8] ? selectedUser[8] : 'n/a')
                 setAddress(selectedUser[6] ? selectedUser[6] : 'n/a')
                 setJobTitle(selectedUser[5] ? selectedUser[5] : 'n/a')
                 setDateJoined(selectedUser[11] ? selectedUser[11] : 'n/a')
@@ -80,13 +82,67 @@ function Profile() {
                 setStatus(selectedUser[13] ? selectedUser[13] : 'n/a')
                 setDep(departmentNameCurr ? departmentNameCurr : 'n/a')
                 setSite(departmentSiteCurr ? departmentSiteCurr : 'n/a')
-                setDepStatus(departmentStateCurr ? departmentStateCurr : 'n/a')
+                console.log('-----0---------0--------0----------0')
             })
             .catch((error) => {
                 // Handle errors if the promise is rejected
                 console.error(error)
             })
-    }, [currUser, selectedUser])
+    }, [selectedUser])
+
+    useEffect(() => {
+        if (selectedUser[14]) {
+            setSelectedDepartments(`dep_${selectedUser[14]}`)
+        }
+        if (selectedUser[10]) {
+            setSelectedRoles(`${selectedUser[10]}`)
+        }
+        if (selectedUser[13]) {
+            setSelectedUserStatus(`u_${selectedUser[13]}`)
+        }
+    }, [selectedUser])
+
+    useEffect(() => {
+        // updateUser({
+        //     firstName: firstName,
+        //     lastName: lastName,
+        //     userName: userName,
+        //     email: email,
+        //     phone: phone,
+        //     birthdate: birthdate,
+        //     location: {`${city}, ${country}`},
+        //     address: address,
+        //     jobTitle: jobTitle,
+        //     dateJoined: dateJoined,
+        //     userRole: userRole,
+        //     status: status,
+        // })
+        // if (selectedOptions.length > 0) {
+        //     if (selectedOptions.split('_')[1] != 'undefined') {
+        //         getUserByID(selectedOptions.split('_')[1])
+        //             .then((user) => {
+        //                 setSelectedUser(user)
+        //             })
+        //             .catch((error) => {
+        //                 console.error(error)
+        //             })
+        //     }
+        // }
+    }, [
+        firstName,
+        lastName,
+        userName,
+        email,
+        phone,
+        birthdate,
+        city,
+        country,
+        address,
+        jobTitle,
+        dateJoined,
+        userRole,
+        status,
+    ])
 
     const checkDepSiteResponse = async (uid = '') => {
         try {
@@ -115,6 +171,16 @@ function Profile() {
         } catch (error) {
             console.log(error)
             return []
+        }
+    }
+
+    const getDepartmentIDResponse = async (n: string, s: string) => {
+        try {
+            const did = await getDepartmentID(n, s)
+            return did
+        } catch (error) {
+            console.log(error)
+            return -1
         }
     }
 
@@ -162,26 +228,26 @@ function Profile() {
         console.log('selectedUser', selectedUser)
     }, [departments, users, selectedUser])
 
-    const checkIsAllowed = () => {
+    const checkIsAllowed = async () => {
         if (role == 'super') {
             setIsAllowed(true)
+            setIsRestricted(false)
+            return
         } else if (role == 'employee') {
             setIsAllowed(false)
-        } else if (role == 'admin' && selectedOptions.length != 0) {
-            const selectedUid = selectedOptions.split('_')[1]
-            console.log('selectedUidddd', selectedUid)
-            const departmentNameSiteAdmin: any = checkDepSiteResponse()
-            const departmentNameSiteUser: any =
-                checkDepSiteResponse(selectedUid)
-            const departmentNameAdmin = departmentNameSiteAdmin[0]
-            const departmentSiteAdmin = departmentNameSiteAdmin[1]
-            const departmentNameUser = departmentNameSiteUser[0]
-            const departmentSiteUser = departmentNameSiteUser[1]
-            if (
-                departmentNameAdmin == departmentNameUser &&
-                departmentSiteAdmin == departmentSiteUser
-            ) {
-                setIsAllowed(false)
+            setIsRestricted(true)
+            return
+        } else if (role == 'admin') {
+            setIsRestricted(true)
+            if (selectedOptions != 'user_undefined') {
+                const selectedUid = selectedOptions.split('_')[1]
+                if (currUser[0] == selectedUid) {
+                    setIsAllowed(false)
+                    return
+                } else {
+                    setIsAllowed(true)
+                    return
+                }
             }
         }
     }
@@ -202,7 +268,7 @@ function Profile() {
                         return true
                     } else if (
                         currUser[10] === 'admin' &&
-                        user[10] === 'employee'
+                        user[4] === 'employee'
                     ) {
                         return true
                     } else if (currUser[0] == user[0]) {
@@ -256,7 +322,7 @@ function Profile() {
 
     useEffect(() => {
         checkIsAllowed()
-    }, [role])
+    }, [role, selectedOptions])
 
     function handleCancel() {
         setIsEdit(false)
@@ -291,7 +357,8 @@ function Profile() {
     }
 
     function handleLocationChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setLocation(e.target.value)
+        setCity(e.target.value.split(', ')[0])
+        setCountry(e.target.value.split(', ')[1])
     }
 
     function handleAddressChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -300,10 +367,6 @@ function Profile() {
 
     function handleJobTitleChange(e: React.ChangeEvent<HTMLInputElement>) {
         setJobTitle(e.target.value)
-    }
-
-    function handleDateJoinedChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setDateJoined(e.target.value)
     }
 
     function handleUserRoleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -322,13 +385,40 @@ function Profile() {
         setSite(e.target.value)
     }
 
-    function handleDepStatusChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setDepStatus(e.target.value)
-    }
-
     useEffect(() => {
         setSelectedOptions(`user_${currUser[0]}`)
     }, [currUser])
+
+    const groupedDepartments: any = {}
+
+    departments.forEach((department: any) => {
+        const site = department[2]
+
+        if (!groupedDepartments[site]) {
+            groupedDepartments[site] = []
+        }
+
+        groupedDepartments[site].push([department[0], department[1]])
+        console.log(groupedDepartments)
+    })
+
+    const filteredOptionsDepartment = Object.entries(groupedDepartments).map(
+        ([site, departments]: [string, any]) => {
+            const departmentOptions = departments.map(
+                ([id, name]: [string, string], index: number) => (
+                    <Option key={`dep_${id}`} value={`dep_${id}`}>
+                        {name}
+                    </Option>
+                )
+            )
+
+            return (
+                <OptGroup key={`optgroup_${site}`} label={site}>
+                    {departmentOptions}
+                </OptGroup>
+            )
+        }
+    )
 
     return (
         <div id='profile-page'>
@@ -344,8 +434,6 @@ function Profile() {
                             value={selectedOptions}
                             filterOption={(inputValue, option) => {
                                 let optionLabel = option?.props?.children || ''
-
-                                // If optionLabel is an array, join its elements into a string
                                 if (Array.isArray(optionLabel)) {
                                     optionLabel = optionLabel.join('')
                                 }
@@ -476,46 +564,100 @@ function Profile() {
                             </div>
                             <div className='row mt-2 mb-2 custom-row'>
                                 <div className='col-7'>
-                                    <Field
-                                        label='Email'
-                                        content={email}
-                                        isEdit={isEdit}
-                                        handle={handleEmailChange}
-                                    />
+                                    <div className='field-component'>
+                                        <p className='field-label'>Email</p>
+                                        {isEdit ? (
+                                            <Input
+                                                type='text'
+                                                onChange={(e) => {
+                                                    handleEmailChange(e)
+                                                }}
+                                                value={email}
+                                            />
+                                        ) : (
+                                            <p className='field-content'>
+                                                {email}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className='col'>
-                                    <Field
-                                        label='Phone Number'
-                                        content={phone}
-                                        isEdit={isEdit}
-                                        handle={handlePhoneChange}
-                                    />
+                                    <div className='field-component'>
+                                        <p className='field-label'>
+                                            Phone Number
+                                        </p>
+                                        {isEdit ? (
+                                            <Input
+                                                type='text'
+                                                onChange={(e) => {
+                                                    handlePhoneChange(e)
+                                                }}
+                                                value={phone}
+                                            />
+                                        ) : (
+                                            <p className='field-content'>
+                                                {phone}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                             <div className='row mt-2 mb-2 custom-row'>
                                 <div className='col-4'>
-                                    <Field
-                                        label='Birthdate'
-                                        content={birthdate}
-                                        isEdit={isEdit}
-                                        handle={handleBirthdateChange}
-                                    />
+                                    <div className='field-component'>
+                                        <p className='field-label'>Birthdate</p>
+                                        {isEdit ? (
+                                            <Input
+                                                type='text'
+                                                onChange={(e) => {
+                                                    handleBirthdateChange(e)
+                                                }}
+                                                value={birthdate}
+                                            />
+                                        ) : (
+                                            <p className='field-content'>
+                                                {birthdate}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className='col-3'>
-                                    <Field
-                                        label='Location'
-                                        content={location}
-                                        isEdit={isEdit}
-                                        handle={handleLocationChange}
-                                    />
+                                    <div className='field-component'>
+                                        <p className='field-label'>Location</p>
+                                        {isEdit ? (
+                                            <Input
+                                                type='text'
+                                                onChange={(e) => {
+                                                    handleLocationChange(e)
+                                                }}
+                                                value={`${city}, ${country}`}
+                                            />
+                                        ) : (
+                                            <p className='field-content'>
+                                                {`${city}, ${country}`}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className='col'>
-                                    <Field
-                                        label='Street Address'
-                                        content={address}
-                                        isEdit={isEdit}
-                                        handle={handleAddressChange}
-                                    />
+                                    <div className='field-component'>
+                                        <p className='field-label'>
+                                            Street Address
+                                        </p>
+                                        {isEdit ? (
+                                            <Input
+                                                type='text'
+                                                onChange={(e) => {
+                                                    handleAddressChange(e)
+                                                }}
+                                                value={address}
+                                            />
+                                        ) : (
+                                            <p className='field-content'>
+                                                {address}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -530,51 +672,114 @@ function Profile() {
                             </div>
                             <div className='row mt-2 mb-2 custom-row'>
                                 <div className='col'>
-                                    <Field
-                                        label='Job Title'
-                                        content={jobTitle}
-                                        isEdit={isEdit && isAllowed}
-                                        handle={handleJobTitleChange}
-                                    />
+                                    <div className='field-component'>
+                                        <p className='field-label'>Job Title</p>
+                                        {isEdit && isAllowed ? (
+                                            <Input
+                                                type='text'
+                                                onChange={(e) => {
+                                                    handleJobTitleChange(e)
+                                                }}
+                                                value={jobTitle}
+                                            />
+                                        ) : (
+                                            <p className='field-content'>
+                                                {jobTitle}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className='col'>
-                                    <Field
-                                        label='Date Joined'
-                                        content={dateJoined}
-                                        isEdit={isEdit && isAllowed}
-                                        handle={handleDateJoinedChange}
-                                    />
+                                    <div className='field-component'>
+                                        <p className='field-label'>
+                                            Date Joined
+                                        </p>
+                                        <p className='field-content'>
+                                            {dateJoined}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                             <div className='row mt-2 mb-2 custom-row'>
                                 <div className='col'>
-                                    <Field
-                                        label='Role'
-                                        content={
-                                            userRole == 'super'
-                                                ? 'Super Admin'
-                                                : userRole
-                                                      .charAt(0)
-                                                      .toUpperCase() +
-                                                  userRole.slice(1)
-                                        }
-                                        isEdit={isEdit && isAllowed}
-                                        handle={handleUserRoleChange}
-                                    />
+                                    <div className='field-component'>
+                                        <p className='field-label'>Role</p>
+                                        {isEdit &&
+                                        isAllowed &&
+                                        !isRestricted ? (
+                                            <Select
+                                                value={selectedRoles}
+                                                onChange={(
+                                                    selectedValues: any
+                                                ) => {
+                                                    setSelectedRoles(
+                                                        selectedValues
+                                                    )
+                                                }}>
+                                                <Option
+                                                    key={`employee`}
+                                                    value={`employee`}>
+                                                    Employee
+                                                </Option>
+                                                <Option
+                                                    key={`admin`}
+                                                    value={`admin`}>
+                                                    Admin
+                                                </Option>
+                                                <Option
+                                                    key={`super`}
+                                                    value={`super`}>
+                                                    Super Admin
+                                                </Option>
+                                            </Select>
+                                        ) : (
+                                            <p className='field-content'>
+                                                {userRole == 'super'
+                                                    ? 'Super Admin'
+                                                    : userRole
+                                                          .charAt(0)
+                                                          .toUpperCase() +
+                                                      userRole.slice(1)}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className='col'>
-                                    <Field
-                                        label='Status'
-                                        content={
-                                            status == '1'
-                                                ? 'Active'
-                                                : status == '0'
-                                                ? 'Inactive'
-                                                : 'n/a'
-                                        }
-                                        isEdit={isEdit && isAllowed}
-                                        handle={handleStatusChange}
-                                    />
+                                    <div className='field-component'>
+                                        <p className='field-label'>
+                                            User Status
+                                        </p>
+                                        {isEdit && isAllowed ? (
+                                            <Select
+                                                value={selectedUserStatus}
+                                                onChange={(
+                                                    selectedValues: any
+                                                ) => {
+                                                    setSelectedUserStatus(
+                                                        selectedValues
+                                                    )
+                                                }}>
+                                                <Option
+                                                    key={`u_0`}
+                                                    value={`u_0`}>
+                                                    Active
+                                                </Option>
+                                                <Option
+                                                    key={`u_1`}
+                                                    value={`u_1`}>
+                                                    Inactive
+                                                </Option>
+                                            </Select>
+                                        ) : (
+                                            <p className='field-content'>
+                                                {status == '1'
+                                                    ? 'Active'
+                                                    : status == '0'
+                                                    ? 'Inactive'
+                                                    : 'n/a'}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -587,36 +792,42 @@ function Profile() {
                             </div>
                             <div className='row mt-2 mb-2 custom-row'>
                                 <div className='col'>
-                                    <Field
-                                        label='Department'
-                                        content={dep}
-                                        isEdit={isEdit && isAllowed}
-                                        handle={handleDepChange}
-                                    />
+                                    <div className='field-component'>
+                                        <p className='field-label'>
+                                            Department Name
+                                        </p>
+                                        {isEdit &&
+                                        isAllowed &&
+                                        !isRestricted ? (
+                                            <Select
+                                                value={selectedDepartments}
+                                                onChange={(
+                                                    selectedValues: any
+                                                ) => {
+                                                    setSelectedDepartments(
+                                                        selectedValues
+                                                    )
+                                                }}>
+                                                {filteredOptionsDepartment}
+                                            </Select>
+                                        ) : (
+                                            <p className='field-content'>
+                                                {dep}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className='col'>
-                                    <Field
-                                        label='Site'
-                                        content={site}
-                                        isEdit={isEdit && isAllowed}
-                                        handle={handleSiteChange}
-                                    />
-                                </div>
-                            </div>
-                            <div className='row mt-2 mb-2 custom-row'>
-                                <div className='col-6'>
-                                    <Field
-                                        label='Status'
-                                        content={
-                                            depStatus == '1'
-                                                ? 'Active'
-                                                : depStatus == '0'
-                                                ? 'Inactive'
-                                                : 'n/a'
-                                        }
-                                        isEdit={isEdit && isAllowed}
-                                        handle={handleDepStatusChange}
-                                    />
+                                    {!isEdit && (
+                                        <div className='field-component'>
+                                            <p className='field-label'>
+                                                Department Site
+                                            </p>
+                                            <p className='field-content'>
+                                                {site}
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
