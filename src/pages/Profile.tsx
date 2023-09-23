@@ -14,6 +14,7 @@ import { getUserByID } from '../utils/GetUserByID'
 import { dateToString } from '../utils/DateToString'
 import { getDepartmentID } from '../utils/GetDepartmentIDFromNameSite'
 import { updateUser } from '../utils/UpdateUser'
+import { stringToDate } from '../utils/stringToDate'
 // import { updateUser } from '../utils/UpdateUser'
 
 function Profile() {
@@ -50,21 +51,6 @@ function Profile() {
     const [site, setSite] = useState<string>('TBA')
 
     const [selectedDepartments, setSelectedDepartments] = useState<any>('')
-    const [selectedRoles, setSelectedRoles] = useState<any>([])
-    const [selectedUserStatus, setSelectedUserStatus] = useState<any>([])
-
-    const [firstNameSaved, setFirstNameSaved] = useState<any>('')
-    const [lastNameSaved, setLastNameSaved] = useState<any>('')
-    const [emailSaved, setEmailSaved] = useState<any>('')
-    const [usernameSaved, setUsernameSaved] = useState<any>('')
-    const [jobTitleSaved, setJobTitleSaved] = useState<any>('')
-    const [streetAddressSaved, setStreetAddressSaved] = useState<any>('')
-    const [locationSaved, setLocationSaved] = useState<any>('')
-    const [phoneNumberSaved, setPhoneNumberSaved] = useState<any>('')
-    const [roleSaved, setRoleSaved] = useState<any>('')
-    const [birthdateSaved, setBirthdateSaved] = useState<any>('')
-    const [employmentStatusSaved, setEmploymentStatusSaved] = useState<any>('')
-    const [departmentIDSaved, setDepartmentIDSaved] = useState<any>('')
 
     useEffect(() => {
         if (selectedUser[0]) {
@@ -106,30 +92,15 @@ function Profile() {
     }, [selectedUser, selectedOptions])
 
     useEffect(() => {
-        setFirstNameSaved(selectedUser[1])
-        setLastNameSaved(selectedUser[2])
-        setUsernameSaved(selectedUser[4])
-        setEmailSaved(selectedUser[3])
-        setPhoneNumberSaved(selectedUser[7])
-        setLocationSaved(selectedUser[14])
-        setStreetAddressSaved(selectedUser[6])
-        setJobTitleSaved(selectedUser[5])
-        setRoleSaved(selectedUser[8])
-        setEmploymentStatusSaved(selectedUser[11])
-        setBirthdateSaved(selectedUser[10])
-        setDepartmentIDSaved(selectedUser[12])
-    }, [selectedUser])
-
-    useEffect(() => {
         if (selectedUser[12]) {
             setSelectedDepartments(`dep_${selectedUser[12]}`)
         }
-        if (selectedUser[10]) {
-            setSelectedRoles(`${selectedUser[8]}`)
-        }
-        if (selectedUser[11]) {
-            setSelectedUserStatus(`u_${selectedUser[11]}`)
-        }
+        // if (selectedUser[10]) {
+        //     setSelectedRoles(`${selectedUser[8]}`)
+        // }
+        // if (selectedUser[11]) {
+        //     setSelectedUserStatus(`u_${selectedUser[11]}`)
+        // }
     }, [selectedUser])
 
     const checkDepSiteResponse = async (uid = '') => {
@@ -348,22 +319,34 @@ function Profile() {
         setIsEdit(false)
     }
 
-    function handleSave() {
-        updateUser({
-            id: selectedUser[0],
-            firstname: firstName,
-            lastname: lastName,
-            email: email,
-            username: userName,
-            jobtitle: jobTitle,
-            street_address: address,
-            location: location,
-            phone_number: phone,
-            role: role,
-            birthdate: birthdate,
-            employment_status: status,
-            department_id: selectedDepartments.split('_')[1],
-        })
+    useEffect(() => {
+        console.log('role: hm ', role)
+    }, [role])
+
+    async function handleSave() {
+        updateUser(
+            selectedUser[0],
+            firstName,
+            lastName,
+            email,
+            userName,
+            jobTitle,
+            address,
+            location,
+            phone,
+            userRole,
+            stringToDate(birthdate),
+            status,
+            parseInt(selectedDepartments.split('_')[1]),
+            true
+        )
+            .then((result: any) => {
+                console.log('User updated successfully:', result)
+            })
+            .catch((error: any) => {
+                console.error('Failed to update user:', error)
+            })
+
         setIsEdit(false)
     }
 
@@ -403,6 +386,28 @@ function Profile() {
         setJobTitle(e.target.value)
     }
 
+    // useEffect(() => {
+    //     setUserRole(selectedRoles)
+    // }, [selectedRoles])
+    useEffect(() => {
+        getDepartmentsResponse()
+            .then((departments: any) => {
+                const foundDepartment = departments.find(
+                    (department: any) => department[0] == selectedDepartments
+                )
+                if (foundDepartment) {
+                    setDep(foundDepartment[1])
+                    setSite(foundDepartment[2])
+                }
+            })
+            .catch((error) => {
+                console.error(error)
+            })
+    }, [selectedDepartments])
+    // useEffect(() => {
+    //     setStatus(selectedUserStatus)
+    // }, [selectedUserStatus])
+
     useEffect(() => {
         setSelectedOptions(`user_${currUser[0]}`)
         console.log('currrr', currUser)
@@ -438,6 +443,10 @@ function Profile() {
             )
         }
     )
+
+    useEffect(() => {
+        console.log('hmmsttatus', status)
+    }, [status])
 
     return (
         <div id='profile-page'>
@@ -502,8 +511,8 @@ function Profile() {
                                     type='button'
                                     className='btn btn-outline-success form-btns'
                                     style={{ width: 120 }}
-                                    onClick={() => {
-                                        handleSave()
+                                    onClick={async () => {
+                                        await handleSave()
                                     }}>
                                     <CheckOutlined />
                                     Save
@@ -726,13 +735,11 @@ function Profile() {
                                         isAllowed &&
                                         !isRestricted ? (
                                             <Select
-                                                value={selectedRoles}
+                                                value={userRole}
                                                 onChange={(
                                                     selectedValues: any
                                                 ) => {
-                                                    setSelectedRoles(
-                                                        selectedValues
-                                                    )
+                                                    setUserRole(selectedValues)
                                                 }}>
                                                 <Option
                                                     key={`employee`}
@@ -769,12 +776,18 @@ function Profile() {
                                         </p>
                                         {isEdit && isAllowed ? (
                                             <Select
-                                                value={selectedUserStatus}
+                                                value={
+                                                    status == '1'
+                                                        ? 'u_1'
+                                                        : 'u_0'
+                                                }
                                                 onChange={(
                                                     selectedValues: any
                                                 ) => {
-                                                    setSelectedUserStatus(
-                                                        selectedValues
+                                                    setStatus(
+                                                        selectedValues.split(
+                                                            '_'
+                                                        )[1]
                                                     )
                                                 }}>
                                                 <Option

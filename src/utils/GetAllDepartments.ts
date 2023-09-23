@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-export const getAllDepartments = (uid = '') => {
+export const getAllDepartments = () => {
     return new Promise((resolve, reject) => {
         axios
             .get('http://127.0.0.1:5000/api/get-all-departments', {

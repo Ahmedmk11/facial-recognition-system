@@ -216,9 +216,14 @@ CREATE PROCEDURE UpdateUser(
     IN newRole VARCHAR(8),
     IN newBirthdate DATE,
     IN newEmploymentStatus VARCHAR(32),
-    IN newDepartmentId INT
+    IN newDepartmentId INT,
+    IN debugMode BOOLEAN
 )
 BEGIN
+    IF debugMode THEN
+        INSERT INTO DebugLog(log_text) VALUES (CONCAT('Calling UpdateUser procedure for user ID ', CAST(userId AS CHAR)));
+    END IF;
+
     UPDATE User
     SET
         firstname = newFirstname,
@@ -235,8 +240,23 @@ BEGIN
         department_id = newDepartmentId
     WHERE
         id = userId;
+
+    IF debugMode THEN
+        INSERT INTO DebugLog(log_text) VALUES (CONCAT('UpdateUser procedure completed for user ID ', CAST(userId AS CHAR)));
+    END IF;
+
+    -- Add a SELECT statement to return a result set
+    SELECT 'OK' AS result;
 END;
 
+DROP PROCEDURE UpdateUser;
+
+
+CREATE TABLE debuglog (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    log_text TEXT,
+    created_at DATETIME
+);
 -- Testing
 
 SHOW PROCESSLIST;
@@ -273,6 +293,8 @@ DROP PROCEDURE UpdateUser;
 CALL DropAllTables;
 CALL CreateAllTables;
 
+CALL GetAllDepartments;
+
 CALL GetAllUsersByUsername('ahmedmk11');
 
 CALL GetUserByID(2);
@@ -290,8 +312,8 @@ CALL InsertAttendance('2023-09-12', 'ahmedmk11', @out)
 CALL GetUsernameCount('ahmedmk11');
 
 UPDATE User
-SET department_id = NULL
-WHERE id = 6;
+SET role = 'employee'
+WHERE id = 4;
 
 ALTER TABLE Department CHANGE active dep_status VARCHAR(1);
 
@@ -309,3 +331,5 @@ ALTER TABLE User
 ADD COLUMN location VARCHAR(255);
 
 SELECT * FROM User;
+
+CALL UpdateUser(1,'Ahmedd', 'Mahmoud', 'ahmedmahmoud1903@outlook.com', 'ahmedmk11', 'TBA', '13 El Nour', 'Cairo, Egypt', '+20155080848', 'super' , '2023-09-03', '1', 3)

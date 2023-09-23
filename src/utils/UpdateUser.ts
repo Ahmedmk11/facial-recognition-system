@@ -1,21 +1,47 @@
 import axios from 'axios'
 
-export const updateUser = (data: any) => {
-    return new Promise((resolve, reject) => {
-        axios
-            .put('http://127.0.0.1:5000/api/update-user', {
-                withCredentials: true,
-                params: {
-                    data: data,
-                },
-            })
-            .then((response) => {
-                let ok = response.data.ok
-                resolve(ok)
-            })
-            .catch((error) => {
-                console.log("Can't update user: ", error)
-                reject(null)
-            })
-    })
+export function updateUser(
+    userId: number,
+    newFirstname: string,
+    newLastname: string,
+    newEmail: string,
+    newUsername: string,
+    newJobtitle: string,
+    newStreetAddress: string,
+    newLocation: string,
+    newPhoneNumber: string,
+    newRole: string,
+    newBirthdate: string, // Assuming it's a string in ISO format, e.g., 'YYYY-MM-DD'
+    newEmploymentStatus: string,
+    newDepartmentId: number,
+    debugMode: boolean
+): Promise<string> {
+    const apiUrl = 'http://127.0.0.1:5000/api/update-user'
+
+    // Prepare the request body
+    const requestBody = {
+        userId,
+        newFirstname,
+        newLastname,
+        newEmail,
+        newUsername,
+        newJobtitle,
+        newStreetAddress,
+        newLocation,
+        newPhoneNumber,
+        newRole,
+        newBirthdate,
+        newEmploymentStatus,
+        newDepartmentId,
+        debugMode,
+    }
+    return axios
+        .post(apiUrl, requestBody)
+        .then((response) => {
+            return response.data.result
+        })
+        .catch((error) => {
+            console.error('Error updating user:', error)
+            throw error
+        })
 }

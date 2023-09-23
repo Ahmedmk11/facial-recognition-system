@@ -27,33 +27,48 @@ def create_db_connection() -> MySQLConnection:
     return connection
 
 def call_procedure(procedure_name: str, *params: str):
-    # Connect to the database
     conn = create_db_connection()
-
-    # Create a cursor
     cursor = conn.cursor()
-
-    # Call the stored procedure
     cursor.callproc(procedure_name, params)
-
-    # Use stored_results to get the result set
     results = cursor.stored_results()
     
-    # Fetch each result set
     result_sets = []
     for result in results:
         result_sets.append(result.fetchall())
 
-    # Close the cursor and connection
     cursor.close()
     conn.close()
 
-    # Print the results for debugging
+    if result_sets and result_sets[0] and result_sets[0][0] == ('OK',):
+        return 'OK'
+    
     for result_set in result_sets:
         print(result_set)
 
     return result_sets
 
+def update_user_in_db(userId, newFirstname, newLastname, newEmail, newUsername, newJobtitle, newStreetAddress,
+                      newLocation, newPhoneNumber, newRole, newBirthdate, newEmploymentStatus, newDepartmentId, debugMode):
+    try:
+        # Connect to the MySQL database
+        conn = create_db_connection()
+        cursor = conn.cursor()
+
+        # Call the UpdateUser stored procedure
+        cursor.callproc("UpdateUser", (userId, newFirstname, newLastname, newEmail, newUsername, newJobtitle,
+                                       newStreetAddress, newLocation, newPhoneNumber, newRole, newBirthdate,
+                                       newEmploymentStatus, newDepartmentId, debugMode))
+
+        # Commit the changes to the database
+        conn.commit()
+
+        # Close the cursor and connection
+        cursor.close()
+        conn.close()
+
+        return 'OK'
+    except Exception as e:
+        return str(e)
 
 def get_data(query: str) -> Dict[str, Any]:
     connection = create_db_connection()
@@ -332,34 +347,30 @@ def get_dep_id():
 # PUT requests
 # ---------------------------------------
 
-@app.route('/api/update-user', methods=['PUT'])
+@app.route('/api/update-user', methods=['POST'])
 def update_user():
-    try: # error updating user
-        data = request.args.get('data')
-        conn = create_db_connection()
-        cursor = conn.cursor()
-        cursor.callproc('UpdateUser', 
-            (data.id,
-            data.firstname,
-            data.lastname,
-            data.email,
-            data.username,
-            data.jobtitle,
-            data.street_address,
-            data.location,
-            data.phone_number,
-            data.role,
-            data.birthdate,
-            data.employment_status,
-            data.department_id))
-        return jsonify({'ok': True})
-    except:
-        print('Error updating user')
-        return jsonify({'ok': False})
-    finally:
-        cursor.close()
-        conn.close()
+    data = request.json
+    userId = data.get('userId')
+    newFirstname = data.get('newFirstname')
+    newLastname = data.get('newLastname')
+    newEmail = data.get('newEmail')
+    newUsername = data.get('newUsername')
+    newJobtitle = data.get('newJobtitle')
+    newStreetAddress = data.get('newStreetAddress')
+    newLocation = data.get('newLocation')
+    newPhoneNumber = data.get('newPhoneNumber')
+    newRole = data.get('newRole')
+    newBirthdate = data.get('newBirthdate')
+    newEmploymentStatus = data.get('newEmploymentStatus')
+    newDepartmentId = data.get('newDepartmentId')
+    debugMode = data.get('debugMode')
+    
+    print('data', data)
 
+    result = update_user_in_db(userId, newFirstname, newLastname, newEmail, newUsername, newJobtitle, newStreetAddress,
+                               newLocation, newPhoneNumber, newRole, newBirthdate, newEmploymentStatus, newDepartmentId, debugMode)
+
+    return jsonify({'result': result})
 # ---------------------------------------
 
 if __name__ == '__main__':
