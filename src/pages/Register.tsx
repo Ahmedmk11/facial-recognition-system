@@ -9,6 +9,7 @@ function Register() {
     const navigate = useNavigate()
 
     const onFinish = async (values: any) => {
+        console.log(values)
         try {
             const response = await axios.post(
                 'http://127.0.0.1:5000/register',
@@ -114,8 +115,7 @@ function Register() {
                 name='registration'
                 onFinish={onFinish}
                 labelCol={{ span: 6 }}
-                wrapperCol={{ span: 18 }}
-            >
+                wrapperCol={{ span: 18 }}>
                 <Item
                     label='First Name'
                     name='firstname'
@@ -124,8 +124,7 @@ function Register() {
                             required: true,
                             message: 'Please enter your first name',
                         },
-                    ]}
-                >
+                    ]}>
                     <Input />
                 </Item>
 
@@ -137,8 +136,7 @@ function Register() {
                             required: true,
                             message: 'Please enter your last name',
                         },
-                    ]}
-                >
+                    ]}>
                     <Input />
                 </Item>
 
@@ -152,8 +150,7 @@ function Register() {
                             message: 'Invalid email format',
                         },
                         { validator: checkEmailInUse },
-                    ]}
-                >
+                    ]}>
                     <Input />
                 </Item>
 
@@ -163,8 +160,7 @@ function Register() {
                     rules={[
                         { required: true, message: 'Please enter a username' },
                         { validator: checkUserNameInUse },
-                    ]}
-                >
+                    ]}>
                     <Input />
                 </Item>
 
@@ -176,31 +172,19 @@ function Register() {
                             required: true,
                             message: 'Please enter your street address',
                         },
-                    ]}
-                >
+                    ]}>
                     <Input />
                 </Item>
 
                 <Item
-                    label='City'
-                    name='city'
-                    rules={[
-                        { required: true, message: 'Please enter your city' },
-                    ]}
-                >
-                    <Input />
-                </Item>
-
-                <Item
-                    label='Country'
-                    name='country'
+                    label='Location'
+                    name='location'
                     rules={[
                         {
                             required: true,
-                            message: 'Please enter your country',
+                            message: 'Please enter your city and country',
                         },
-                    ]}
-                >
+                    ]}>
                     <Input />
                 </Item>
 
@@ -213,8 +197,7 @@ function Register() {
                             message: 'Please enter your phone number',
                         },
                         { validator: checkNumberInUse },
-                    ]}
-                >
+                    ]}>
                     <Input />
                 </Item>
 
@@ -226,8 +209,7 @@ function Register() {
                             required: true,
                             message: 'Please select your birthdate',
                         },
-                    ]}
-                >
+                    ]}>
                     <DatePicker />
                 </Item>
 

@@ -19,11 +19,12 @@ import { UserOutlined } from '@ant-design/icons'
 
 import cameraIcn from '../assets/icons/camera.svg'
 
-type ProfilePictureProps = {}
+type ProfilePictureProps = {
+    id: any
+}
 
 function ProfilePicture(props: ProfilePictureProps) {
-    const {} = props
-    const id = '300009'
+    const { id } = props
     return (
         <div id='profile-picture-component'>
             <img

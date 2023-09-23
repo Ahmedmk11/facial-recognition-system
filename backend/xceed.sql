@@ -19,22 +19,21 @@ BEGIN
     );
 
     CREATE TABLE User (
-        id INT AUTO_INCREMENT UNIQUE NOT NULL PRIMARY KEY,
+        id INT AUTO_INCREMENT UNIQUE NOT NULL PRIMARY KEY, #
         firstname VARCHAR(128) NOT NULL,
         lastname VARCHAR(128) NOT NULL,
         email VARCHAR(128) UNIQUE NOT NULL,
         username VARCHAR(64) UNIQUE NOT NULL,
-        jobtitle VARCHAR(128),
+        jobtitle VARCHAR(128), #
         street_address VARCHAR(95) NOT NULL,
-        city VARCHAR(30) NOT NULL,
-        country VARCHAR(74) NOT NULL,
+        location VARCHAR(255) NOT NULL,
         phone_number VARCHAR(15) UNIQUE NOT NULL,
         role VARCHAR(8),
         date_joined DATE,
         birthdate DATE NOT NULL,
         employment_status VARCHAR(32),
-        department_id INT,
-        embedding BLOB,
+        department_id INT, #
+        embedding BLOB, #
         FOREIGN KEY (department_id) REFERENCES Department(id)
     );
 
@@ -69,8 +68,7 @@ CREATE PROCEDURE InsertUser(
   IN email VARCHAR(128),
   IN username VARCHAR(64),
   IN street_address VARCHAR(95),
-  IN city VARCHAR(30),
-  IN country VARCHAR(74),
+  IN location VARCHAR(255),
   IN phone_number VARCHAR(15),
   IN birthdate DATE,
   OUT last_inserted_id INT
@@ -82,10 +80,12 @@ BEGIN
         email,
         username,
         street_address,
-        city,
-        country,
+        location,
         phone_number,
-        birthdate
+        birthdate,
+        role,
+        employment_status,
+        date_joined
     )
     VALUES (
         firstname,
@@ -93,10 +93,12 @@ BEGIN
         email,
         username,
         street_address,
-        city,
-        country,
+        location,
         phone_number,
-        birthdate
+        birthdate,
+        'employee',
+        '1',
+        CURDATE()
     );
 
     SET last_inserted_id = LAST_INSERT_ID();
@@ -201,12 +203,46 @@ BEGIN
     SELECT id FROM Department WHERE name = depName AND site = depSite;
 END;
 
+CREATE PROCEDURE UpdateUser(
+    IN userId INT,
+    IN newFirstname VARCHAR(128),
+    IN newLastname VARCHAR(128),
+    IN newEmail VARCHAR(128),
+    IN newUsername VARCHAR(64),
+    IN newJobtitle VARCHAR(128),
+    IN newStreetAddress VARCHAR(95),
+    IN newLocation VARCHAR(255),
+    IN newPhoneNumber VARCHAR(15),
+    IN newRole VARCHAR(8),
+    IN newBirthdate DATE,
+    IN newEmploymentStatus VARCHAR(32),
+    IN newDepartmentId INT
+)
+BEGIN
+    UPDATE User
+    SET
+        firstname = newFirstname,
+        lastname = newLastname,
+        email = newEmail,
+        username = newUsername,
+        jobtitle = newJobtitle,
+        street_address = newStreetAddress,
+        location = newLocation,
+        phone_number = newPhoneNumber,
+        role = newRole,
+        birthdate = newBirthdate,
+        employment_status = newEmploymentStatus,
+        department_id = newDepartmentId
+    WHERE
+        id = userId;
+END;
+
 -- Testing
+
 SHOW PROCESSLIST;
 KILL 2612;
 
 CALL GetAllDepartments();
-
 
 SELECT * FROM Department;
 SELECT * FROM User;
@@ -232,6 +268,7 @@ DROP PROCEDURE GetUserRole;
 DROP PROCEDURE GetUserDepartmentAndSite;
 DROP PROCEDURE GetAllUsers;
 DROP PROCEDURE GetAllDepartments;
+DROP PROCEDURE UpdateUser;
 
 CALL DropAllTables;
 CALL CreateAllTables;
@@ -253,7 +290,8 @@ CALL InsertAttendance('2023-09-12', 'ahmedmk11', @out)
 CALL GetUsernameCount('ahmedmk11');
 
 UPDATE User
-SET employment_status = 1;
+SET department_id = NULL
+WHERE id = 6;
 
 ALTER TABLE Department CHANGE active dep_status VARCHAR(1);
 
@@ -262,3 +300,12 @@ CALL GetUserDepartmentAndSite(1);
 SELECT User.id, User.name FROM User INNER JOIN Department ON User.id = Department.id;
 
 CALL GetUserRole(1);
+
+ALTER TABLE User
+DROP COLUMN city,
+DROP COLUMN country;
+
+ALTER TABLE User
+ADD COLUMN location VARCHAR(255);
+
+SELECT * FROM User;

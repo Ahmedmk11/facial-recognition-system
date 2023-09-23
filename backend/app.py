@@ -127,20 +127,19 @@ def register():
         email = data.get('email')
         username = data.get('username')
         street_address = data.get('street_address')
-        city = data.get('city')
-        country = data.get('country')
+        location = data.get('location')
         phone_number = data.get('phone_number')
 
         date_format = '%Y-%m-%dT%H:%M:%S.%fZ'
         parsed_date = datetime.strptime(data.get('birthdate'), date_format)
         birthdate = parsed_date.date()
 
-        if not (firstname and lastname and username and email and street_address and city and country and phone_number and birthdate):
+        if not (firstname and lastname and username and email and street_address and location and phone_number and birthdate):
             error_response = {'error': 'Invalid or missing data'}
             return jsonify(error_response), 400
 
         procedure_name = "InsertUser"
-        params = (firstname, lastname, email, username, street_address, city, country, phone_number, birthdate)
+        params = (firstname, lastname, email, username, street_address, location, phone_number, birthdate)
         inserted_id = call_insert_procedure(procedure_name, *params)
 
         if inserted_id != -1:
@@ -335,7 +334,31 @@ def get_dep_id():
 
 @app.route('/api/update-user', methods=['PUT'])
 def update_user():
-    pass
+    try: # error updating user
+        data = request.args.get('data')
+        conn = create_db_connection()
+        cursor = conn.cursor()
+        cursor.callproc('UpdateUser', 
+            (data.id,
+            data.firstname,
+            data.lastname,
+            data.email,
+            data.username,
+            data.jobtitle,
+            data.street_address,
+            data.location,
+            data.phone_number,
+            data.role,
+            data.birthdate,
+            data.employment_status,
+            data.department_id))
+        return jsonify({'ok': True})
+    except:
+        print('Error updating user')
+        return jsonify({'ok': False})
+    finally:
+        cursor.close()
+        conn.close()
 
 # ---------------------------------------
 

@@ -1,4 +1,4 @@
-import { Button, Divider, Dropdown, Input } from 'antd'
+import { Input } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import NavBar from '../components/NavBar'
@@ -6,26 +6,23 @@ import { checkUserRole } from '../utils/CheckRole'
 import { EditOutlined, CloseOutlined, CheckOutlined } from '@ant-design/icons'
 import { Select } from 'antd'
 
-import cancelIcn from '../assets/icons/cancel.svg'
-import doneIcn from '../assets/icons/done.svg'
 import ProfilePicture from '../components/ProfilePicture'
 import { checkUserDepartmentAndSite } from '../utils/CheckUserDepartmentAndSite'
-import axios from 'axios'
 import { getAllUsers } from '../utils/GetAllUsers'
 import { getAllDepartments } from '../utils/GetAllDepartments'
-import { capitalizeWords } from '../utils/Capitalize'
 import { getUserByID } from '../utils/GetUserByID'
 import { dateToString } from '../utils/DateToString'
-import { updateUser } from '../utils/UpdateUser'
 import { getDepartmentID } from '../utils/GetDepartmentIDFromNameSite'
+import { updateUser } from '../utils/UpdateUser'
+// import { updateUser } from '../utils/UpdateUser'
 
 function Profile() {
     const navigate = useNavigate()
     const { Option, OptGroup } = Select
     const [currUser, setCurrUser] = useState<any>('')
+    const [firstFetch, setFirstFetch] = useState<boolean>(true)
 
     const [role, setRole] = useState<any>(null)
-    const [viewedUserID, setViewedUserID] = useState<any>('')
     const [isAllowed, setIsAllowed] = useState<boolean>(false)
     const [isRestricted, setIsRestricted] = useState<boolean>(true)
     const [isEdit, setIsEdit] = useState<boolean>(false)
@@ -34,115 +31,106 @@ function Profile() {
     const [users, setUsers] = useState<any>([])
     const [selectedUser, setSelectedUser] = useState<any>([])
 
-    const [firstName, setFirstName] = useState<string>('n/a')
-    const [lastName, setLastName] = useState<string>('n/a')
-    const [userName, setUserName] = useState<string>('n/a')
+    const [firstName, setFirstName] = useState<string>('TBA')
+    const [lastName, setLastName] = useState<string>('TBA')
+    const [userName, setUserName] = useState<string>('TBA')
 
-    const [email, setEmail] = useState<string>('n/a')
-    const [phone, setPhone] = useState<string>('n/a')
-    const [birthdate, setBirthdate] = useState<string>('n/a')
-    const [city, setCity] = useState<string>('n/a')
-    const [country, setCountry] = useState<string>('n/a')
-    const [address, setAddress] = useState<string>('n/a')
+    const [email, setEmail] = useState<string>('TBA')
+    const [phone, setPhone] = useState<string>('TBA')
+    const [birthdate, setBirthdate] = useState<string>('TBA')
+    const [location, setLocation] = useState<string>('TBA')
+    const [address, setAddress] = useState<string>('TBA')
 
-    const [jobTitle, setJobTitle] = useState<string>('n/a')
-    const [dateJoined, setDateJoined] = useState<string>('n/a')
-    const [userRole, setUserRole] = useState<string>('n/a')
-    const [status, setStatus] = useState<string>('n/a')
+    const [jobTitle, setJobTitle] = useState<string>('TBA')
+    const [dateJoined, setDateJoined] = useState<string>('TBA')
+    const [userRole, setUserRole] = useState<string>('TBA')
+    const [status, setStatus] = useState<string>('TBA')
 
-    const [dep, setDep] = useState<string>('n/a')
-    const [site, setSite] = useState<string>('n/a')
+    const [dep, setDep] = useState<string>('TBA')
+    const [site, setSite] = useState<string>('TBA')
 
-    const [selectedDepartments, setSelectedDepartments] = useState<any>([])
+    const [selectedDepartments, setSelectedDepartments] = useState<any>('')
     const [selectedRoles, setSelectedRoles] = useState<any>([])
     const [selectedUserStatus, setSelectedUserStatus] = useState<any>([])
 
+    const [firstNameSaved, setFirstNameSaved] = useState<any>('')
+    const [lastNameSaved, setLastNameSaved] = useState<any>('')
+    const [emailSaved, setEmailSaved] = useState<any>('')
+    const [usernameSaved, setUsernameSaved] = useState<any>('')
+    const [jobTitleSaved, setJobTitleSaved] = useState<any>('')
+    const [streetAddressSaved, setStreetAddressSaved] = useState<any>('')
+    const [locationSaved, setLocationSaved] = useState<any>('')
+    const [phoneNumberSaved, setPhoneNumberSaved] = useState<any>('')
+    const [roleSaved, setRoleSaved] = useState<any>('')
+    const [birthdateSaved, setBirthdateSaved] = useState<any>('')
+    const [employmentStatusSaved, setEmploymentStatusSaved] = useState<any>('')
+    const [departmentIDSaved, setDepartmentIDSaved] = useState<any>('')
+
     useEffect(() => {
-        checkDepSiteResponse(selectedUser[0])
-            .then((departmentNameSiteCurr: any) => {
-                const departmentSiteCurr = departmentNameSiteCurr[1]
-                const departmentNameCurr = departmentNameSiteCurr[0]
-                console.log('wow', departmentNameSiteCurr)
-                setFirstName(selectedUser[1] ? selectedUser[1] : 'n/a')
-                setLastName(selectedUser[2] ? selectedUser[2] : 'n/a')
-                setUserName(selectedUser[4] ? selectedUser[4] : 'n/a')
-                setEmail(selectedUser[3] ? selectedUser[3] : 'n/a')
-                setPhone(selectedUser[9] ? selectedUser[9] : 'n/a')
-                setBirthdate(
-                    dateToString(selectedUser[12])
-                        ? dateToString(selectedUser[12])
-                        : 'n/a'
-                )
-                setCity(selectedUser[7] ? selectedUser[7] : 'n/a')
-                setCountry(selectedUser[8] ? selectedUser[8] : 'n/a')
-                setAddress(selectedUser[6] ? selectedUser[6] : 'n/a')
-                setJobTitle(selectedUser[5] ? selectedUser[5] : 'n/a')
-                setDateJoined(selectedUser[11] ? selectedUser[11] : 'n/a')
-                setUserRole(selectedUser[10] ? selectedUser[10] : 'n/a')
-                setStatus(selectedUser[13] ? selectedUser[13] : 'n/a')
-                setDep(departmentNameCurr ? departmentNameCurr : 'n/a')
-                setSite(departmentSiteCurr ? departmentSiteCurr : 'n/a')
-                console.log('-----0---------0--------0----------0')
-            })
-            .catch((error) => {
-                // Handle errors if the promise is rejected
-                console.error(error)
-            })
+        if (selectedUser[0]) {
+            checkDepSiteResponse(selectedUser[0])
+                .then((departmentNameSiteCurr: any) => {
+                    const departmentSiteCurr = departmentNameSiteCurr
+                        ? departmentNameSiteCurr[1]
+                        : 'TBA'
+                    const departmentNameCurr = departmentNameSiteCurr
+                        ? departmentNameSiteCurr[0]
+                        : 'TBA'
+                    console.log('wow', departmentNameSiteCurr)
+                    setFirstName(selectedUser[1] ? selectedUser[1] : 'TBA')
+                    setLastName(selectedUser[2] ? selectedUser[2] : 'TBA')
+                    setUserName(selectedUser[4] ? selectedUser[4] : 'TBA')
+                    setEmail(selectedUser[3] ? selectedUser[3] : 'TBA')
+                    setPhone(selectedUser[7] ? selectedUser[7] : 'TBA')
+                    setBirthdate(
+                        selectedUser[10]
+                            ? dateToString(selectedUser[10])
+                            : 'TBA'
+                    )
+                    setLocation(selectedUser[14] ? selectedUser[14] : 'TBA')
+                    setAddress(selectedUser[6] ? selectedUser[6] : 'TBA')
+                    setJobTitle(selectedUser[5] ? selectedUser[5] : 'TBA')
+                    setDateJoined(
+                        selectedUser[9] ? dateToString(selectedUser[9]) : 'TBA'
+                    )
+                    setUserRole(selectedUser[8] ? selectedUser[8] : 'TBA')
+                    setStatus(selectedUser[11] ? selectedUser[11] : 'TBA')
+                    setDep(departmentNameCurr ? departmentNameCurr : 'TBA')
+                    setSite(departmentSiteCurr ? departmentSiteCurr : 'TBA')
+                    console.log('-----0---------0--------0----------0')
+                })
+                .catch((error) => {
+                    console.error(error)
+                })
+        }
+    }, [selectedUser, selectedOptions])
+
+    useEffect(() => {
+        setFirstNameSaved(selectedUser[1])
+        setLastNameSaved(selectedUser[2])
+        setUsernameSaved(selectedUser[4])
+        setEmailSaved(selectedUser[3])
+        setPhoneNumberSaved(selectedUser[7])
+        setLocationSaved(selectedUser[14])
+        setStreetAddressSaved(selectedUser[6])
+        setJobTitleSaved(selectedUser[5])
+        setRoleSaved(selectedUser[8])
+        setEmploymentStatusSaved(selectedUser[11])
+        setBirthdateSaved(selectedUser[10])
+        setDepartmentIDSaved(selectedUser[12])
     }, [selectedUser])
 
     useEffect(() => {
-        if (selectedUser[14]) {
-            setSelectedDepartments(`dep_${selectedUser[14]}`)
+        if (selectedUser[12]) {
+            setSelectedDepartments(`dep_${selectedUser[12]}`)
         }
         if (selectedUser[10]) {
-            setSelectedRoles(`${selectedUser[10]}`)
+            setSelectedRoles(`${selectedUser[8]}`)
         }
-        if (selectedUser[13]) {
-            setSelectedUserStatus(`u_${selectedUser[13]}`)
+        if (selectedUser[11]) {
+            setSelectedUserStatus(`u_${selectedUser[11]}`)
         }
     }, [selectedUser])
-
-    useEffect(() => {
-        // updateUser({
-        //     firstName: firstName,
-        //     lastName: lastName,
-        //     userName: userName,
-        //     email: email,
-        //     phone: phone,
-        //     birthdate: birthdate,
-        //     location: {`${city}, ${country}`},
-        //     address: address,
-        //     jobTitle: jobTitle,
-        //     dateJoined: dateJoined,
-        //     userRole: userRole,
-        //     status: status,
-        // })
-        // if (selectedOptions.length > 0) {
-        //     if (selectedOptions.split('_')[1] != 'undefined') {
-        //         getUserByID(selectedOptions.split('_')[1])
-        //             .then((user) => {
-        //                 setSelectedUser(user)
-        //             })
-        //             .catch((error) => {
-        //                 console.error(error)
-        //             })
-        //     }
-        // }
-    }, [
-        firstName,
-        lastName,
-        userName,
-        email,
-        phone,
-        birthdate,
-        city,
-        country,
-        address,
-        jobTitle,
-        dateJoined,
-        userRole,
-        status,
-    ])
 
     const checkDepSiteResponse = async (uid = '') => {
         try {
@@ -255,7 +243,7 @@ function Profile() {
     const filteredOptions = departments
         .filter(
             (department: any) =>
-                (role == 'admin' && department[0] == 1) || role == 'super'
+                (role == 'admin' && department[3] == '1') || role == 'super'
         )
         .map((department: any) => {
             const optGroupLabel = `${department[1]}, ${department[2]}`
@@ -264,10 +252,10 @@ function Profile() {
             )
             const userOptions = usersInDepartment
                 .filter((user: any) => {
-                    if (currUser[10] === 'super') {
+                    if (currUser[8] === 'super') {
                         return true
                     } else if (
-                        currUser[10] === 'admin' &&
+                        currUser[8] === 'admin' &&
                         user[4] === 'employee'
                     ) {
                         return true
@@ -291,7 +279,7 @@ function Profile() {
                         No Users Found
                     </Option>
                 )
-
+            console.log('uuuusssss', department)
             return (
                 <OptGroup
                     key={`optgroup_${department[0]}`}
@@ -322,13 +310,60 @@ function Profile() {
 
     useEffect(() => {
         checkIsAllowed()
-    }, [role, selectedOptions])
+    }, [role, selectedOptions, currUser])
 
     function handleCancel() {
+        checkDepSiteResponse(selectedUser[0])
+            .then((departmentNameSiteCurr: any) => {
+                const departmentSiteCurr = departmentNameSiteCurr
+                    ? departmentNameSiteCurr[1]
+                    : 'TBA'
+                const departmentNameCurr = departmentNameSiteCurr
+                    ? departmentNameSiteCurr[0]
+                    : 'TBA'
+                console.log('wow', departmentNameSiteCurr)
+                setFirstName(selectedUser[1] ? selectedUser[1] : 'TBA')
+                setLastName(selectedUser[2] ? selectedUser[2] : 'TBA')
+                setUserName(selectedUser[4] ? selectedUser[4] : 'TBA')
+                setEmail(selectedUser[3] ? selectedUser[3] : 'TBA')
+                setPhone(selectedUser[7] ? selectedUser[7] : 'TBA')
+                setBirthdate(
+                    selectedUser[10] ? dateToString(selectedUser[10]) : 'TBA'
+                )
+                setLocation(selectedUser[14] ? selectedUser[14] : 'TBA')
+                setAddress(selectedUser[6] ? selectedUser[6] : 'TBA')
+                setJobTitle(selectedUser[5] ? selectedUser[5] : 'TBA')
+                setDateJoined(
+                    selectedUser[9] ? dateToString(selectedUser[9]) : 'TBA'
+                )
+                setUserRole(selectedUser[8] ? selectedUser[8] : 'TBA')
+                setStatus(selectedUser[11] ? selectedUser[11] : 'TBA')
+                setDep(departmentNameCurr ? departmentNameCurr : 'TBA')
+                setSite(departmentSiteCurr ? departmentSiteCurr : 'TBA')
+                console.log('-----0---------0--------0----------0')
+            })
+            .catch((error) => {
+                console.error(error)
+            })
         setIsEdit(false)
     }
 
     function handleSave() {
+        updateUser({
+            id: selectedUser[0],
+            firstname: firstName,
+            lastname: lastName,
+            email: email,
+            username: userName,
+            jobtitle: jobTitle,
+            street_address: address,
+            location: location,
+            phone_number: phone,
+            role: role,
+            birthdate: birthdate,
+            employment_status: status,
+            department_id: selectedDepartments.split('_')[1],
+        })
         setIsEdit(false)
     }
 
@@ -357,8 +392,7 @@ function Profile() {
     }
 
     function handleLocationChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setCity(e.target.value.split(', ')[0])
-        setCountry(e.target.value.split(', ')[1])
+        setLocation(e.target.value)
     }
 
     function handleAddressChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -369,24 +403,9 @@ function Profile() {
         setJobTitle(e.target.value)
     }
 
-    function handleUserRoleChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setUserRole(e.target.value)
-    }
-
-    function handleStatusChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setStatus(e.target.value)
-    }
-
-    function handleDepChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setDep(e.target.value)
-    }
-
-    function handleSiteChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setSite(e.target.value)
-    }
-
     useEffect(() => {
         setSelectedOptions(`user_${currUser[0]}`)
+        console.log('currrr', currUser)
     }, [currUser])
 
     const groupedDepartments: any = {}
@@ -429,7 +448,6 @@ function Profile() {
                     <div id='profile-page-content-left'>
                         <Select
                             disabled={isEdit}
-                            defaultValue={`user_${currUser[0]}`}
                             onChange={handleOptionSelect}
                             value={selectedOptions}
                             filterOption={(inputValue, option) => {
@@ -506,7 +524,7 @@ function Profile() {
                     </div>
                     <div className='row'>
                         <div className='col col-3' style={{ marginRight: 26 }}>
-                            <ProfilePicture />
+                            <ProfilePicture id={currUser[0]} />
                         </div>
                         <div className='col col-8'>
                             <div
@@ -630,11 +648,11 @@ function Profile() {
                                                 onChange={(e) => {
                                                     handleLocationChange(e)
                                                 }}
-                                                value={`${city}, ${country}`}
+                                                value={location}
                                             />
                                         ) : (
                                             <p className='field-content'>
-                                                {`${city}, ${country}`}
+                                                {location}
                                             </p>
                                         )}
                                     </div>
@@ -666,7 +684,7 @@ function Profile() {
                         <div className='col'>
                             <div className='row'>
                                 <p className='ppcr-title'>
-                                    Professional Information
+                                    Employee Information
                                 </p>
                                 <hr />
                             </div>
@@ -760,13 +778,13 @@ function Profile() {
                                                     )
                                                 }}>
                                                 <Option
-                                                    key={`u_0`}
-                                                    value={`u_0`}>
+                                                    key={`u_1`}
+                                                    value={`u_1`}>
                                                     Active
                                                 </Option>
                                                 <Option
-                                                    key={`u_1`}
-                                                    value={`u_1`}>
+                                                    key={`u_0`}
+                                                    value={`u_0`}>
                                                     Inactive
                                                 </Option>
                                             </Select>
@@ -776,7 +794,7 @@ function Profile() {
                                                     ? 'Active'
                                                     : status == '0'
                                                     ? 'Inactive'
-                                                    : 'n/a'}
+                                                    : 'TBA'}
                                             </p>
                                         )}
                                     </div>
@@ -818,7 +836,7 @@ function Profile() {
                                     </div>
                                 </div>
                                 <div className='col'>
-                                    {!isEdit && (
+                                    {(!isEdit || !isAllowed) && (
                                         <div className='field-component'>
                                             <p className='field-label'>
                                                 Department Site
