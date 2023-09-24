@@ -85,7 +85,8 @@ BEGIN
         birthdate,
         role,
         employment_status,
-        date_joined
+        date_joined,
+        department_id
     )
     VALUES (
         firstname,
@@ -98,7 +99,8 @@ BEGIN
         birthdate,
         'employee',
         '1',
-        CURDATE()
+        CURDATE(),
+        5
     );
 
     SET last_inserted_id = LAST_INSERT_ID();
@@ -108,10 +110,11 @@ CREATE PROCEDURE InsertAttendance(
     IN uid INT
 )
 BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM Attendance
-        WHERE user_id = uid AND attendance_date = CURDATE()
-    ) THEN
+    DECLARE existing_count INT;
+    SELECT COUNT(*) INTO existing_count
+    FROM Attendance
+    WHERE user_id = uid AND DATE(attendance_date) = CURDATE();
+    IF existing_count = 0 THEN
         INSERT INTO Attendance (
             user_id,
             attendance_date
@@ -120,8 +123,10 @@ BEGIN
             uid,
             NOW()
         );
+        SELECT 'OK' AS result;
+    ELSE
+        SELECT 'OK' AS result;
     END IF;
-    SELECT 'OK' AS result;
 END;
 
 CREATE PROCEDURE GetEmployeeNamesInDepartment( # wrong
@@ -191,13 +196,15 @@ END;
 
 CREATE PROCEDURE GetAllUsers ()
 BEGIN
-  SELECT id, firstname, lastname, department_id, role FROM User;
+  SELECT id, firstname, lastname, department_id, role, location FROM User;
 END;
 
-CREATE PROCEDURE GetAllDepartments ()
+CREATE PROCEDURE GetAllDepartments()
 BEGIN
-    SELECT * FROM Department
-    ORDER BY site ASC, name ASC;
+    SELECT *,
+           CASE WHEN site = 'TBA' THEN 1 ELSE 0 END AS site_order
+    FROM Department
+    ORDER BY site_order ASC, site ASC, name ASC;
 END;
 
 CREATE PROCEDURE GetDepartmentIDFromNameSite (IN depName VARCHAR(128), IN depSite VARCHAR(128))
@@ -247,19 +254,37 @@ BEGIN
         INSERT INTO DebugLog(log_text) VALUES (CONCAT('UpdateUser procedure completed for user ID ', CAST(userId AS CHAR)));
     END IF;
 
-    -- Add a SELECT statement to return a result set
     SELECT 'OK' AS result;
 END;
 
-DROP PROCEDURE UpdateUser;
+CREATE PROCEDURE GetUserAttendance(IN uidList TEXT)
+BEGIN
+    CREATE TEMPORARY TABLE temp_user_ids (uid INT);
+    SET @startIndex = 1;
+    SET @endIndex = LOCATE(',', uidList);
+    WHILE @endIndex > 0 DO
+        INSERT INTO temp_user_ids (uid) VALUES (CAST(SUBSTRING(uidList, @startIndex, @endIndex - @startIndex) AS SIGNED));
+        SET @startIndex = @endIndex + 1;
+        SET @endIndex = LOCATE(',', uidList, @startIndex);
+    END WHILE;
+    INSERT INTO temp_user_ids (uid) VALUES (CAST(SUBSTRING(uidList, @startIndex) AS SIGNED));
+    SELECT A.*
+    FROM Attendance A
+    JOIN temp_user_ids T ON A.user_id = T.uid
+    ORDER BY A.user_id ASC;
+    DROP TEMPORARY TABLE IF EXISTS temp_user_ids;
+END;
 
+CALL GetUserAttendance('1,2')
+DROP PROCEDURE GetUserAttendance
+
+-- Testing
 
 CREATE TABLE debuglog (
     id INT AUTO_INCREMENT PRIMARY KEY,
     log_text TEXT,
     created_at DATETIME
 );
--- Testing
 
 SHOW PROCESSLIST;
 KILL 2612;
@@ -269,6 +294,8 @@ CALL GetAllDepartments();
 SELECT * FROM Department;
 SELECT * FROM User;
 SELECT * FROM Attendance;
+
+CALL InsertDepartment('TBA', 'TBA')
 
 TRUNCATE table Attendance;
 
@@ -293,6 +320,7 @@ DROP PROCEDURE GetUserDepartmentAndSite;
 DROP PROCEDURE GetAllUsers;
 DROP PROCEDURE GetAllDepartments;
 DROP PROCEDURE UpdateUser;
+DROP PROCEDURE GetUserAttendance;
 
 CALL DropAllTables;
 CALL CreateAllTables;
@@ -316,8 +344,8 @@ CALL InsertAttendance('2023-09-12', 'ahmedmk11', @out)
 CALL GetUsernameCount('ahmedmk11');
 
 UPDATE User
-SET role = 'employee'
-WHERE id = 4;
+SET department_id = 5
+WHERE id = 6;
 
 ALTER TABLE Department CHANGE active dep_status VARCHAR(1);
 
@@ -335,5 +363,7 @@ ALTER TABLE User
 ADD COLUMN location VARCHAR(255);
 
 SELECT * FROM User;
+
+CALL GetUserAttendance(1)
 
 CALL UpdateUser(1,'Ahmedd', 'Mahmoud', 'ahmedmahmoud1903@outlook.com', 'ahmedmk11', 'TBA', '13 El Nour', 'Cairo, Egypt', '+20155080848', 'super' , '2023-09-03', '1', 3)

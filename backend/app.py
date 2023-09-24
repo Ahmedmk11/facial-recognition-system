@@ -351,6 +351,16 @@ def get_departments():
     print(departments)
     return jsonify({'departments': departments})
 
+@app.route('/api/get-user-attendance', methods=['GET'])
+def get_user_attendance():
+    uid = request.args.get('uid')
+    if not uid:
+        return jsonify({'error': 'No user found'})
+    
+    [attendance] = call_procedure('GetUserAttendance', uid)
+    print(attendance)
+    return jsonify({'attendance': attendance})
+
 @app.route('/api/get-user-id', methods=['GET'])
 def get_user_by_id():
     uid = request.args.get('uid')

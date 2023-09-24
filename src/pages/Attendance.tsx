@@ -1,6 +1,6 @@
-import { Button, DatePicker, Select } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Button, DatePicker, Select } from 'antd'
+import { useLocation, useNavigate } from 'react-router-dom'
 import NavBar from '../components/NavBar'
 import Footer from '../components/Footer'
 import { checkUserRole } from '../utils/CheckRole'
@@ -10,16 +10,22 @@ import { getAllDepartments } from '../utils/GetAllDepartments'
 import { Table } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { TableRowSelection } from 'antd/es/table/interface'
+import { getUserAttendance } from '../utils/GetUserAttendance'
+import { convertDateFormats } from '../utils/ConvertDateTimeToString'
 
 interface DataType {
     key: React.Key
-    name: string
-    age: number
-    address: string
+    uid: number
+    fullname: string
+    location: string
+    date: string
+    time: string
 }
 
 function Attendance() {
     const navigate = useNavigate()
+    const { state } = useLocation()
+
     const { Option, OptGroup } = Select
     const { RangePicker } = DatePicker
     const [role, setRole] = useState<any>(null)
@@ -27,32 +33,108 @@ function Attendance() {
     const [departments, setDepartments] = useState<any>([])
     const [currUser, setCurrUser] = useState<any>('')
     const [users, setUsers] = useState<any>([])
+    const [data, setData] = useState<any>([])
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
+
+    const [attendance, setAttendance] = useState<any>([])
+
+    async function getUserAttendanceResponse(uid: string) {
+        try {
+            const attendance = await getUserAttendance(uid)
+            return attendance
+        } catch (error) {
+            console.log(error)
+            return []
+        }
+    }
+
+    useEffect(() => {
+        if (selectedOptions[0] && !selectedOptions[0]?.includes('undefined')) {
+            getUserAttendanceResponse(
+                selectedOptions
+                    .map((option: string) => option.split('_')[1])
+                    .join(',')
+            )
+                .then((attendance) => {
+                    setAttendance(attendance)
+                })
+                .catch((error) => {
+                    console.error(error)
+                })
+        } else {
+            setAttendance([])
+            setData([])
+        }
+    }, [selectedOptions])
+
+    useEffect(() => {
+        console.log('blobloblobloblo', currUser)
+        getUserAttendanceResponse(state ? `${state.uid}` : `${currUser[0]}`)
+            .then((attendance) => {
+                setAttendance(attendance)
+            })
+            .catch((error) => {
+                console.error(error)
+            })
+    }, [currUser])
+
+    useEffect(() => {
+        console.log('atte', attendance)
+    }, [attendance])
 
     const columns: ColumnsType<DataType> = [
         {
-            title: 'Name',
-            dataIndex: 'name',
+            title: 'ID',
+            dataIndex: 'uid',
         },
         {
-            title: 'Age',
-            dataIndex: 'age',
+            title: 'Full Name',
+            dataIndex: 'fullname',
         },
         {
-            title: 'Address',
-            dataIndex: 'address',
+            title: 'Location',
+            dataIndex: 'location',
+        },
+        {
+            title: 'Date',
+            dataIndex: 'date',
+        },
+        {
+            title: 'Time',
+            dataIndex: 'time',
         },
     ]
 
-    const data: DataType[] = []
-    for (let i = 0; i < 46; i++) {
-        data.push({
-            key: i,
-            name: `Edward King ${i}`,
-            age: 32,
-            address: `London, Park Lane no. ${i}`,
-        })
-    }
+    useEffect(() => {
+        if (attendance.length > 0) {
+            setData(
+                attendance.map((a: any, index: any) => ({
+                    key: index,
+                    uid: a[1],
+                    fullname: `${
+                        users.find((user: any) => {
+                            return user[0] == a[1]
+                        })[1]
+                    } ${
+                        users.find((user: any) => {
+                            return user[0] == a[1]
+                        })[2]
+                    }`,
+                    location: users.find((user: any) => {
+                        return user[0] == a[1]
+                    })[5],
+                    date: convertDateFormats(a[2])[0],
+                    time: convertDateFormats(a[2])[1],
+                }))
+            )
+            console.log(
+                'yoyo',
+                users.find((user: any) => {
+                    user[0] == attendance[0][1]
+                })
+            )
+        }
+    }, [attendance])
 
     const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
         console.log('selectedRowKeys changed: ', newSelectedRowKeys)
@@ -156,7 +238,11 @@ function Attendance() {
     }, [])
 
     useEffect(() => {
-        setSelectedOptions([`user_${currUser[0]}`])
+        if (state) {
+            setSelectedOptions([`user_${state.uid}`])
+        } else {
+            setSelectedOptions([`user_${currUser[0]}`])
+        }
         console.log('currrr', currUser)
     }, [currUser])
 
@@ -213,42 +299,61 @@ function Attendance() {
     const handleOptionSelect = (selectedValues: any) => {
         setSelectedOptions(selectedValues)
     }
+    function handleDownloadReport() {
+        throw new Error('Function not implemented.')
+    }
+
     return (
         <div id='attendance-page'>
             <NavBar />
             <div id='attendance-content'>
                 {role == 'employee' ? null : (
                     <div id='attendance-filters'>
-                        <Select
-                            allowClear
-                            placeholder='Select users'
-                            mode='multiple'
-                            onChange={handleOptionSelect}
-                            value={selectedOptions}
-                            filterOption={(inputValue, option) => {
-                                let optionLabel = option?.props?.children || ''
-                                if (Array.isArray(optionLabel)) {
-                                    optionLabel = optionLabel.join('')
-                                }
-
-                                const optgroupLabel = option?.props?.label || ''
-
-                                return (
-                                    (typeof optionLabel === 'string' &&
-                                        optionLabel
-                                            .toLowerCase()
-                                            .includes(
-                                                inputValue.toLowerCase()
-                                            )) ||
-                                    (typeof optgroupLabel === 'string' &&
-                                        optgroupLabel
-                                            .toLowerCase()
-                                            .includes(inputValue.toLowerCase()))
-                                )
+                        <div id='inputs'>
+                            <Select
+                                allowClear
+                                placeholder='Select users'
+                                mode='multiple'
+                                onChange={handleOptionSelect}
+                                value={selectedOptions}
+                                filterOption={(inputValue, option) => {
+                                    let optionLabel =
+                                        option?.props?.children || ''
+                                    if (Array.isArray(optionLabel)) {
+                                        optionLabel = optionLabel.join('')
+                                    }
+                                    const optgroupLabel =
+                                        option?.props?.label || ''
+                                    return (
+                                        (typeof optionLabel === 'string' &&
+                                            optionLabel
+                                                .toLowerCase()
+                                                .includes(
+                                                    inputValue.toLowerCase()
+                                                )) ||
+                                        (typeof optgroupLabel === 'string' &&
+                                            optgroupLabel
+                                                .toLowerCase()
+                                                .includes(
+                                                    inputValue.toLowerCase()
+                                                ))
+                                    )
+                                }}>
+                                {filteredOptions}
+                            </Select>
+                            <RangePicker showTime allowClear />
+                        </div>
+                        <button
+                            className='btn btn-primary btn-lg float-right custom-button'
+                            style={{
+                                fontSize: 15,
+                                width: '85%',
+                            }}
+                            onClick={() => {
+                                handleDownloadReport()
                             }}>
-                            {filteredOptions}
-                        </Select>
-                        <RangePicker showTime allowClear />
+                            Download Report
+                        </button>
                     </div>
                 )}
                 <div id='attendance-container'>

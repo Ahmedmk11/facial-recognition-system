@@ -29,7 +29,8 @@ function Profile() {
     const navigate = useNavigate()
     const { Option, OptGroup } = Select
     const [currUser, setCurrUser] = useState<any>('')
-    const [firstFetch, setFirstFetch] = useState<boolean>(true)
+    const [filteredOptions, setFilteredOptions] = useState<any>([])
+    const [render, setRender] = useState<boolean>(true)
 
     const [role, setRole] = useState<any>(null)
     const [isAllowed, setIsAllowed] = useState<boolean>(false)
@@ -278,6 +279,63 @@ function Profile() {
     }, [])
 
     useEffect(() => {
+        setFilteredOptions(
+            departments
+                .filter(
+                    (department: any) =>
+                        (role == 'admin' && department[3] == '1') ||
+                        role == 'super'
+                )
+                .map((department: any) => {
+                    const optGroupLabel = `${department[1]}, ${department[2]}`
+                    const usersInDepartment = users.filter(
+                        (user: any) => user[3] === department[0]
+                    )
+                    const userOptions = usersInDepartment
+                        .filter((user: any) => {
+                            if (currUser[8] === 'super') {
+                                return true
+                            } else if (
+                                currUser[8] === 'admin' &&
+                                user[4] === 'employee'
+                            ) {
+                                return true
+                            } else if (currUser[0] == user[0]) {
+                                return true
+                            }
+                            return false
+                        })
+                        .map((user: any) => (
+                            <Option
+                                key={`user_${user[0]}`}
+                                value={`user_${user[0]}`}>
+                                {user[1]} {user[2]}
+                            </Option>
+                        ))
+
+                    const selectAllOption =
+                        usersInDepartment.length > 0 ? null : (
+                            <Option
+                                disabled
+                                key={`nodata_${department[0]}`}
+                                value={`nodata_${department[0]}`}>
+                                No Users Found
+                            </Option>
+                        )
+                    console.log('uuuusssss', department)
+                    return (
+                        <OptGroup
+                            key={`optgroup_${department[0]}`}
+                            label={optGroupLabel}>
+                            {selectAllOption}
+                            {userOptions}
+                        </OptGroup>
+                    )
+                })
+        )
+    }, [render, selectedUser]) // PROBLEM: Select departments arent updated until refresh
+
+    useEffect(() => {
         if (selectedOptions.length > 0) {
             if (selectedOptions.split('_')[1] != 'undefined') {
                 getUserByID(selectedOptions.split('_')[1])
@@ -320,56 +378,6 @@ function Profile() {
             }
         }
     }
-
-    const filteredOptions = departments
-        .filter(
-            (department: any) =>
-                (role == 'admin' && department[3] == '1') || role == 'super'
-        )
-        .map((department: any) => {
-            const optGroupLabel = `${department[1]}, ${department[2]}`
-            const usersInDepartment = users.filter(
-                (user: any) => user[3] === department[0]
-            )
-            const userOptions = usersInDepartment
-                .filter((user: any) => {
-                    if (currUser[8] === 'super') {
-                        return true
-                    } else if (
-                        currUser[8] === 'admin' &&
-                        user[4] === 'employee'
-                    ) {
-                        return true
-                    } else if (currUser[0] == user[0]) {
-                        return true
-                    }
-                    return false
-                })
-                .map((user: any) => (
-                    <Option key={`user_${user[0]}`} value={`user_${user[0]}`}>
-                        {user[1]} {user[2]}
-                    </Option>
-                ))
-
-            const selectAllOption =
-                usersInDepartment.length > 0 ? null : (
-                    <Option
-                        disabled
-                        key={`nodata_${department[0]}`}
-                        value={`nodata_${department[0]}`}>
-                        No Users Found
-                    </Option>
-                )
-            console.log('uuuusssss', department)
-            return (
-                <OptGroup
-                    key={`optgroup_${department[0]}`}
-                    label={optGroupLabel}>
-                    {selectAllOption}
-                    {userOptions}
-                </OptGroup>
-            )
-        })
 
     const handleOptionSelect = (selectedValues: any) => {
         setSelectedOptions(selectedValues)
@@ -452,6 +460,7 @@ function Profile() {
             !addressError &&
             !jobTitleError
         ) {
+            setRender(!render)
             updateUser(
                 selectedUser[0],
                 firstName,
@@ -1076,7 +1085,11 @@ function Profile() {
                             style={{ width: 300 }}
                             className='btn btn-primary btn-lg float-right custom-button'
                             onClick={() => {
-                                navigate('/attendance')
+                                navigate('/attendance', {
+                                    state: {
+                                        uid: selectedUser[0],
+                                    },
+                                })
                             }}>
                             View Attendance
                         </button>
