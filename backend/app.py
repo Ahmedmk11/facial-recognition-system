@@ -50,22 +50,26 @@ def call_procedure(procedure_name: str, *params: str):
 def update_user_in_db(userId, newFirstname, newLastname, newEmail, newUsername, newJobtitle, newStreetAddress,
                       newLocation, newPhoneNumber, newRole, newBirthdate, newEmploymentStatus, newDepartmentId, debugMode):
     try:
-        # Connect to the MySQL database
         conn = create_db_connection()
         cursor = conn.cursor()
-
-        # Call the UpdateUser stored procedure
         cursor.callproc("UpdateUser", (userId, newFirstname, newLastname, newEmail, newUsername, newJobtitle,
                                        newStreetAddress, newLocation, newPhoneNumber, newRole, newBirthdate,
                                        newEmploymentStatus, newDepartmentId, debugMode))
-
-        # Commit the changes to the database
         conn.commit()
-
-        # Close the cursor and connection
         cursor.close()
         conn.close()
-
+        return 'OK'
+    except Exception as e:
+        return str(e)
+    
+def add_attendance(userId):
+    try:
+        conn = create_db_connection()
+        cursor = conn.cursor()
+        cursor.callproc("InsertAttendance", (userId,))
+        conn.commit()
+        cursor.close()
+        conn.close()
         return 'OK'
     except Exception as e:
         return str(e)
@@ -184,7 +188,7 @@ def login():
     if not (username):
         error_response = {'error': 'Invalid or missing data'}
         return jsonify(error_response), 400
-
+    print ('jello')
     queryResult = call_procedure('GetAllUsersByUsername', username)
 
     if not queryResult:
@@ -199,8 +203,15 @@ def login():
         'firstname': queryResult[0][0][1],
         'lastname': queryResult[0][0][2]
     }
-    print(session.get('user'))
-    return jsonify({'message': 'Login successful'})
+
+    uid = queryResult[0][0][0]
+    insertResult = add_attendance(uid)
+    print('insertResult', insertResult)
+    if (insertResult == 'OK'):
+        print(session.get('user'))
+        return jsonify({'message': 'Login successful'})
+    else:
+        return jsonify({'message': 'Login Failed, Cannot insert attendance'})
 
 @app.route('/clear-session-user', methods=['POST'])
 def clear_session_user():

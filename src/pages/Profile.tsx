@@ -22,6 +22,7 @@ import {
     checkNumberInUse,
     checkUserNameInUse,
 } from '../utils/ValidationAlreadyExists'
+import Footer from '../components/Footer'
 // import { updateUser } from '../utils/UpdateUser'
 
 function Profile() {
@@ -1082,6 +1083,7 @@ function Profile() {
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     )
 }

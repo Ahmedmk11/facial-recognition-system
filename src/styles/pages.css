@@ -25,7 +25,8 @@ body.dark {
 #profile-page,
 #attendance-page,
 #register-page,
-#login-page {
+#login-page,
+#notfound-page {
   height: fit-content;
   min-height: 100%;
   width: 100%;

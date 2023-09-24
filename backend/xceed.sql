@@ -105,21 +105,23 @@ BEGIN
 END;
 
 CREATE PROCEDURE InsertAttendance(
-    IN insertedDate DATE,
-    IN username VARCHAR(64),
-    OUT last_inserted_id INT
+    IN uid INT
 )
 BEGIN
-    INSERT INTO Attendance (
-        user_id,
-        attendance_date
-    )
-    VALUES (
-        (SELECT id FROM User WHERE User.username = username),
-        insertedDate
-    );
-
-    SET last_inserted_id = LAST_INSERT_ID();
+    IF NOT EXISTS (
+        SELECT 1 FROM Attendance
+        WHERE user_id = uid AND attendance_date = CURDATE()
+    ) THEN
+        INSERT INTO Attendance (
+            user_id,
+            attendance_date
+        )
+        VALUES (
+            uid,
+            CURDATE()
+        );
+    END IF;
+    SELECT 'OK' AS result;
 END;
 
 CREATE PROCEDURE GetEmployeeNamesInDepartment( # wrong
@@ -267,6 +269,8 @@ CALL GetAllDepartments();
 SELECT * FROM Department;
 SELECT * FROM User;
 SELECT * FROM Attendance;
+
+TRUNCATE table Attendance;
 
 DROP PROCEDURE CreateAllTables;
 DROP PROCEDURE DropAllTables;
