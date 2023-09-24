@@ -15,6 +15,7 @@ body.light {
   --button-active-sec: #4e555b;
   --error-msg: #dc3545;
   --footer-bg-color: #efefef;
+  --table-border-color: #f0f0f0;
 }
 
 body.dark {
@@ -67,11 +68,11 @@ body.dark {
   width: 80%;
   height: 100%;
   min-height: fit-content;
-  border-radius: 26px;
-  -webkit-border-radius: 26px;
-  -moz-border-radius: 26px;
-  -ms-border-radius: 26px;
-  -o-border-radius: 26px;
+  border-radius: 12px;
+  -webkit-border-radius: 12px;
+  -moz-border-radius: 12px;
+  -ms-border-radius: 12px;
+  -o-border-radius: 12px;
   background-color: var(--page-item-bg);
   margin: auto;
 }
@@ -169,6 +170,45 @@ body.dark {
 }
 #register-form-container .ant-btn {
   width: 100%;
+}
+
+#attendance-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+#attendance-content #attendance-filters {
+  padding-top: 26px;
+  width: 20%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+#attendance-content #attendance-filters .ant-select,
+#attendance-content #attendance-filters .ant-picker {
+  width: 85% !important;
+  margin-bottom: 26px;
+}
+#attendance-content #attendance-filters .ant-select-selection-item {
+  max-height: 30px !important;
+}
+#attendance-content #attendance-container {
+  box-sizing: border-box;
+  width: 80%;
+  margin: auto;
+  margin-right: 0px;
+}
+#attendance-content #attendance-container .ant-table {
+  border-left: 1px solid var(--table-border-color);
+  border-right: 1px solid var(--table-border-color);
+}
+#attendance-content #attendance-container .ant-pagination {
+  margin-right: 36px;
 }
 
 /*# sourceMappingURL=pages.css.map */

@@ -40,7 +40,7 @@ BEGIN
     CREATE TABLE Attendance (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
-        attendance_date DATE NOT NULL,
+        attendance_date DATETIME NOT NULL,
         FOREIGN KEY (user_id) REFERENCES User(id)
     );
 END;
@@ -118,7 +118,7 @@ BEGIN
         )
         VALUES (
             uid,
-            CURDATE()
+            NOW()
         );
     END IF;
     SELECT 'OK' AS result;
