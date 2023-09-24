@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { Form, Input, Button, DatePicker, message } from 'antd'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import Footer from '../components/Footer'
+import NavBar from '../components/NavBar'
 const { Item } = Form
 
 function Login() {
@@ -22,7 +24,9 @@ function Login() {
             if (response.status === 200) {
                 message.success('Login successful')
                 form.resetFields()
-                navigate('/home')
+                setTimeout(() => {
+                    navigate('/home')
+                }, 1000)
             } else {
                 message.error('Login failed')
             }
@@ -60,29 +64,34 @@ function Login() {
 
     return (
         <div id='login-page'>
-            <Form
-                form={form}
-                name='login'
-                onFinish={onFinish}
-                labelCol={{ span: 6 }}
-                wrapperCol={{ span: 18 }}
-            >
-                <Item
-                    label='Username'
-                    name='username'
-                    rules={[
-                        { required: true, message: 'Please enter a username' },
-                        { validator: checkUserNameExists },
-                    ]}
-                >
-                    <Input />
-                </Item>
-                <Item wrapperCol={{ offset: 6, span: 18 }}>
-                    <Button type='primary' htmlType='submit'>
-                        Login
-                    </Button>
-                </Item>
-            </Form>
+            <NavBar />
+            <div id='login-form-container'>
+                <Form
+                    form={form}
+                    name='login'
+                    onFinish={onFinish}
+                    labelCol={{ span: 6 }}
+                    wrapperCol={{ span: 18 }}>
+                    <Item
+                        label='Username'
+                        name='username'
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please enter a username',
+                            },
+                            { validator: checkUserNameExists },
+                        ]}>
+                        <Input />
+                    </Item>
+                    <Item wrapperCol={{ offset: 6, span: 18 }}>
+                        <Button type='primary' htmlType='submit'>
+                            Login
+                        </Button>
+                    </Item>
+                </Form>
+            </div>
+            <Footer />
         </div>
     )
 }

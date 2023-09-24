@@ -1,6 +1,10 @@
+@import 'variables';
+
 #home-page,
 #profile-page,
-#attendance-page {
+#attendance-page,
+#register-page,
+#login-page {
     height: fit-content;
     min-height: 100%;
     width: 100%;
@@ -50,7 +54,7 @@
             -moz-border-radius: 26px;
             -ms-border-radius: 26px;
             -o-border-radius: 26px;
-            background-color: var(--profile-right-bg);
+            background-color: var(--page-item-bg);
             margin: auto;
             .form-btns {
                 .anticon {
@@ -111,5 +115,50 @@
                 }
             }
         }
+    }
+}
+
+.error-msg {
+    color: var(--error-msg);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+// ---------------------------------------
+// Register Page
+// ---------------------------------------
+
+#register-form-container {
+    h3 {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 26px;
+        color: var(--field-content);
+    }
+    width: 550px;
+    background-color: var(--page-item-bg);
+    padding: 26px;
+    margin: 26px;
+    box-sizing: border-box;
+    border-radius: 20px;
+    -webkit-border-radius: 20px;
+    -moz-border-radius: 20px;
+    -ms-border-radius: 20px;
+    -o-border-radius: 20px;
+    .ant-row {
+        width: 100% !important;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+    label {
+        margin-right: 100%;
+    }
+    .ant-picker {
+        width: 100%;
+    }
+    .ant-btn {
+        width: 100%;
     }
 }

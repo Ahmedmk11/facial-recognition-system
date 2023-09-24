@@ -100,42 +100,46 @@ function NavBar() {
             />
             <div id='nav-items'>
                 <div id='nav-items-left'>
-                    <p
-                        className={
-                            page === 'home'
-                                ? 'underlined-item'
-                                : 'hover-underline-animation'
-                        }
-                        onClick={() => {
-                            navigate('/home')
-                        }}>
-                        Home
-                    </p>
-                    <p
-                        className={
-                            page === 'profile'
-                                ? 'underlined-item'
-                                : 'hover-underline-animation'
-                        }
-                        onClick={() => {
-                            navigate('/profile')
-                        }}>
-                        Profile
-                    </p>
-                    <p
-                        className={
-                            page === 'attendance'
-                                ? 'underlined-item'
-                                : 'hover-underline-animation'
-                        }
-                        onClick={() => {
-                            navigate('/attendance')
-                        }}>
-                        Attendance
-                    </p>
+                    {role == null ? null : (
+                        <>
+                            <p
+                                className={
+                                    page === 'home'
+                                        ? 'underlined-item'
+                                        : 'hover-underline-animation'
+                                }
+                                onClick={() => {
+                                    navigate('/home')
+                                }}>
+                                Home
+                            </p>
+                            <p
+                                className={
+                                    page === 'profile'
+                                        ? 'underlined-item'
+                                        : 'hover-underline-animation'
+                                }
+                                onClick={() => {
+                                    navigate('/profile')
+                                }}>
+                                Profile
+                            </p>
+                            <p
+                                className={
+                                    page === 'attendance'
+                                        ? 'underlined-item'
+                                        : 'hover-underline-animation'
+                                }
+                                onClick={() => {
+                                    navigate('/attendance')
+                                }}>
+                                Attendance
+                            </p>
+                        </>
+                    )}
                 </div>
                 <div id='nav-items-right'>
-                    {role === 'employee' ? null : (
+                    {role == 'super' || role == 'admin' ? (
                         <Dropdown
                             menu={{ items: notifs }}
                             trigger={['click']}
@@ -174,7 +178,7 @@ function NavBar() {
                                 </Space>
                             </a>
                         </Dropdown>
-                    )}
+                    ) : null}
                     <Button
                         type='text'
                         onClick={handleTheme}
@@ -187,8 +191,22 @@ function NavBar() {
                                 ? 'underlined-item'
                                 : 'hover-underline-animation'
                         }
-                        onClick={handleLogout}>
-                        Logout
+                        onClick={
+                            role == null
+                                ? () => {
+                                      if (page == 'login') {
+                                          navigate('/register')
+                                      } else {
+                                          navigate('/login')
+                                      }
+                                  }
+                                : handleLogout
+                        }>
+                        {page == 'login'
+                            ? 'Register'
+                            : page == 'register'
+                            ? 'Login'
+                            : 'Logout'}
                     </p>
                 </div>
             </div>

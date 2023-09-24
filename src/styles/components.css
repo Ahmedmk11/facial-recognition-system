@@ -1,7 +1,7 @@
 body.light {
   --navbar-color: rgb(86, 86, 255);
   --navbar-items-color: rgba(255, 255, 255, 0.95);
-  --profile-right-bg: #efefef;
+  --page-item-bg: #efefef;
   --profile-picture-add: #dfdfdf;
   --field-label: #b6b6b6;
   --field-content: rgba(0, 0, 0, 0.8);
@@ -13,6 +13,8 @@ body.light {
   --button-active: royalblue;
   --button-hover-sec: #5a6268;
   --button-active-sec: #4e555b;
+  --error-msg: #dc3545;
+  --footer-bg-color: #efefef;
 }
 
 body.dark {
@@ -217,6 +219,32 @@ body.dark {
   line-height: 30px;
   font-weight: 800;
   opacity: 80%;
+}
+
+.footer {
+  background-color: var(--footer-bg-color);
+  width: 100%;
+  color: var(--button-text);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+}
+.footer .footer-left {
+  font-size: 14px;
+  color: var(--field-content);
+  font-weight: 500;
+}
+.footer .footer-right {
+  margin-right: 32px;
+  font-size: 24px;
+}
+.footer .footer-right a {
+  color: var(--field-content);
+  margin-left: 12px;
+}
+.footer .footer-right a:hover {
+  color: var(--button-hover);
 }
 
 /*# sourceMappingURL=components.css.map */

@@ -2,6 +2,13 @@ import React, { useState } from 'react'
 import { Form, Input, Button, DatePicker, message } from 'antd'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import {
+    checkEmailInUse,
+    checkNumberInUse,
+    checkUserNameInUse,
+} from '../utils/ValidationAlreadyExists'
+import NavBar from '../components/NavBar'
+import Footer from '../components/Footer'
 const { Item } = Form
 
 function Register() {
@@ -9,216 +16,233 @@ function Register() {
     const navigate = useNavigate()
 
     const onFinish = async (values: any) => {
-        console.log(values)
-        try {
-            const response = await axios.post(
-                'http://127.0.0.1:5000/register',
-                values,
-                {
-                    withCredentials: true,
+        form.validateFields()
+            .then(async () => {
+                console.log(values)
+                try {
+                    const response = await axios.post(
+                        'http://127.0.0.1:5000/register',
+                        values,
+                        {
+                            withCredentials: true,
+                        }
+                    )
+                    console.log('Server response:', response.data)
+                    message.success('Registration successful')
+                    form.resetFields()
+                    setTimeout(() => {
+                        navigate('/home')
+                    }, 1000)
+                } catch (error) {
+                    console.error('Error:', error)
+                    message.error('Registration failed')
                 }
-            )
-            // Handle the response from the server (e.g., display success or error message)
-            console.log('Server response:', response.data)
-            message.success('Registration successful')
-            form.resetFields()
-            navigate('/home')
-        } catch (error) {
-            // Handle any errors that occur during the POST request
-            console.error('Error:', error)
-            message.error('Registration failed')
-        }
-    }
-
-    const checkEmailInUse = async (rule: any, value: any) => {
-        if (value) {
-            try {
-                const response = await axios.get(
-                    'http://127.0.0.1:5000/api/check-email',
-                    {
-                        params: {
-                            email: value,
-                        },
-                        withCredentials: true,
-                    }
-                )
-
-                const { emailInUse } = response.data
-
-                if (emailInUse) {
-                    return Promise.reject('Email is already in use')
-                }
-            } catch (error) {
-                console.error('Error checking email availability:', error)
-                return Promise.reject('Error checking email availability')
-            }
-        }
-        return Promise.resolve()
-    }
-
-    const checkUserNameInUse = async (rule: any, value: any) => {
-        if (value) {
-            try {
-                const response = await axios.get(
-                    'http://127.0.0.1:5000/api/check-username',
-                    {
-                        params: {
-                            username: value,
-                        },
-                        withCredentials: true,
-                    }
-                )
-
-                const { usernameInUse } = response.data
-
-                if (usernameInUse) {
-                    return Promise.reject('Username is taken')
-                }
-            } catch (error) {
-                console.error('Error checking username availability:', error)
-                return Promise.reject('Error checking username availability')
-            }
-        }
-        return Promise.resolve()
-    }
-
-    const checkNumberInUse = async (rule: any, value: any) => {
-        if (value) {
-            try {
-                const response = await axios.get(
-                    'http://127.0.0.1:5000/api/check-number',
-                    {
-                        params: {
-                            number: value,
-                        },
-                        withCredentials: true,
-                    }
-                )
-
-                const { numberInUse } = response.data
-
-                if (numberInUse) {
-                    return Promise.reject('Phone Number is already in use')
-                }
-            } catch (error) {
-                console.error('Error checking number availability:', error)
-                return Promise.reject('Error checking number availability')
-            }
-        }
-        return Promise.resolve()
+            })
+            .catch((errorInfo) => {
+                console.log('Validation failed:', errorInfo)
+            })
     }
 
     return (
         <div id='register-page'>
-            <Form
-                form={form}
-                name='registration'
-                onFinish={onFinish}
-                labelCol={{ span: 6 }}
-                wrapperCol={{ span: 18 }}>
-                <Item
-                    label='First Name'
-                    name='firstname'
-                    rules={[
-                        {
-                            required: true,
-                            message: 'Please enter your first name',
-                        },
-                    ]}>
-                    <Input />
-                </Item>
+            <NavBar />
+            <div id='register-form-container'>
+                <Form
+                    form={form}
+                    name='registration'
+                    onFinish={onFinish}
+                    labelCol={{ span: 6 }}
+                    wrapperCol={{ span: 18 }}>
+                    <h3>Register</h3>
+                    <Item
+                        label='First Name'
+                        name='firstname'
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please enter your first name',
+                            },
+                            {
+                                min: 2,
+                                message:
+                                    'First name should be at least 2 characters long',
+                            },
+                            {
+                                max: 128,
+                                message:
+                                    "First name shouldn't exceed 128 characters",
+                            },
+                            {
+                                pattern: /^[A-Za-z]+$/,
+                                message:
+                                    'First name should only contain letters',
+                            },
+                        ]}>
+                        <Input allowClear />
+                    </Item>
 
-                <Item
-                    label='Last Name'
-                    name='lastname'
-                    rules={[
-                        {
-                            required: true,
-                            message: 'Please enter your last name',
-                        },
-                    ]}>
-                    <Input />
-                </Item>
+                    <Item
+                        label='Last Name'
+                        name='lastname'
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please enter your last name',
+                            },
+                            {
+                                min: 2,
+                                message:
+                                    'Last name should be at least 2 characters long',
+                            },
+                            {
+                                max: 128,
+                                message:
+                                    "Last name shouldn't exceed 128 characters",
+                            },
+                            {
+                                pattern: /^[A-Za-z]+$/,
+                                message:
+                                    'Last name should only contain letters',
+                            },
+                        ]}>
+                        <Input allowClear />
+                    </Item>
 
-                <Item
-                    label='Email'
-                    name='email'
-                    rules={[
-                        { required: true, message: 'Please enter your email' },
-                        {
-                            type: 'email',
-                            message: 'Invalid email format',
-                        },
-                        { validator: checkEmailInUse },
-                    ]}>
-                    <Input />
-                </Item>
+                    <Item
+                        label='Email'
+                        name='email'
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please enter your email',
+                            },
+                            {
+                                type: 'email',
+                                message: 'Invalid email format',
+                            },
+                            {
+                                max: 128,
+                                message:
+                                    'Email should be a maximum of 128 characters',
+                            },
+                            { validator: checkEmailInUse },
+                        ]}>
+                        <Input allowClear />
+                    </Item>
 
-                <Item
-                    label='Username'
-                    name='username'
-                    rules={[
-                        { required: true, message: 'Please enter a username' },
-                        { validator: checkUserNameInUse },
-                    ]}>
-                    <Input />
-                </Item>
+                    <Item
+                        label='Username'
+                        name='username'
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please enter a username',
+                            },
+                            {
+                                min: 6,
+                                message:
+                                    'Username should be at least 6 characters long',
+                            },
+                            {
+                                max: 64,
+                                message:
+                                    "Username shouldn't exceed 64 characters",
+                            },
+                            {
+                                pattern: /^[A-Za-z0-9_]+$/,
+                                message:
+                                    'Username should only contain letters, numbers, and underscores',
+                            },
+                            { validator: checkUserNameInUse },
+                        ]}>
+                        <Input allowClear />
+                    </Item>
 
-                <Item
-                    label='Street Address'
-                    name='street_address'
-                    rules={[
-                        {
-                            required: true,
-                            message: 'Please enter your street address',
-                        },
-                    ]}>
-                    <Input />
-                </Item>
+                    <Item
+                        label='Street Address'
+                        name='street_address'
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please enter your street address',
+                            },
+                            {
+                                max: 95,
+                                message:
+                                    "Street address shouldn't exceed 95 characters",
+                            },
+                        ]}>
+                        <Input allowClear />
+                    </Item>
 
-                <Item
-                    label='Location'
-                    name='location'
-                    rules={[
-                        {
-                            required: true,
-                            message: 'Please enter your city and country',
-                        },
-                    ]}>
-                    <Input />
-                </Item>
+                    <Item
+                        label='Location'
+                        name='location'
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please enter your city and country',
+                            },
+                            {
+                                max: 255,
+                                message:
+                                    "Location shouldn't exceed 255 characters",
+                            },
+                            {
+                                pattern: /^[A-Za-z, ]{0,255}$/,
+                                message:
+                                    'Location should only contain letters and one comma',
+                            },
+                            {
+                                pattern: /^[^,]+,[^,]+$/,
+                                message:
+                                    'Please match the requested format (e.g. Cairo, Egypt)',
+                            },
+                        ]}>
+                        <Input allowClear />
+                    </Item>
 
-                <Item
-                    label='Phone Number'
-                    name='phone_number'
-                    rules={[
-                        {
-                            required: true,
-                            message: 'Please enter your phone number',
-                        },
-                        { validator: checkNumberInUse },
-                    ]}>
-                    <Input />
-                </Item>
+                    <Item
+                        label='Phone Number'
+                        name='phone_number'
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please enter your phone number',
+                            },
+                            {
+                                max: 15,
+                                message:
+                                    'Phone number should be a maximum of 15 characters',
+                            },
+                            {
+                                pattern: /^[0-9()+\-]+$/,
+                                message:
+                                    'Phone number should only contain numbers, (, ), +, -',
+                            },
+                            { validator: checkNumberInUse },
+                        ]}>
+                        <Input allowClear />
+                    </Item>
 
-                <Item
-                    label='Birthdate'
-                    name='birthdate'
-                    rules={[
-                        {
-                            required: true,
-                            message: 'Please select your birthdate',
-                        },
-                    ]}>
-                    <DatePicker />
-                </Item>
+                    <Item
+                        label='Birthdate'
+                        name='birthdate'
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please select your birthdate',
+                            },
+                        ]}>
+                        <DatePicker allowClear />
+                    </Item>
 
-                <Item wrapperCol={{ offset: 6, span: 18 }}>
                     <Button type='primary' htmlType='submit'>
                         Register
                     </Button>
-                </Item>
-            </Form>
+                </Form>
+            </div>
+            <Footer />
         </div>
     )
 }

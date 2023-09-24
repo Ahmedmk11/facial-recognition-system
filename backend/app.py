@@ -212,6 +212,31 @@ def clear_session_user():
     except:
         return jsonify({'message': 'Error clearing session'}), 500
     
+@app.route('/api/update-user', methods=['POST'])
+def update_user():
+    data = request.json
+    userId = data.get('userId')
+    newFirstname = data.get('newFirstname')
+    newLastname = data.get('newLastname')
+    newEmail = data.get('newEmail')
+    newUsername = data.get('newUsername')
+    newJobtitle = data.get('newJobtitle')
+    newStreetAddress = data.get('newStreetAddress')
+    newLocation = data.get('newLocation')
+    newPhoneNumber = data.get('newPhoneNumber')
+    newRole = data.get('newRole')
+    newBirthdate = data.get('newBirthdate')
+    newEmploymentStatus = data.get('newEmploymentStatus')
+    newDepartmentId = data.get('newDepartmentId')
+    debugMode = data.get('debugMode')
+    
+    print('data', data)
+
+    result = update_user_in_db(userId, newFirstname, newLastname, newEmail, newUsername, newJobtitle, newStreetAddress,
+                               newLocation, newPhoneNumber, newRole, newBirthdate, newEmploymentStatus, newDepartmentId, debugMode)
+
+    return jsonify({'result': result})
+    
 # ---------------------------------------
 # GET requests
 # ---------------------------------------
@@ -343,34 +368,6 @@ def get_dep_id():
     [[did]] = call_procedure('GetDepartmentIDFromNameSite', (name, site))
     return jsonify({'did': did})
 
-# ---------------------------------------
-# PUT requests
-# ---------------------------------------
-
-@app.route('/api/update-user', methods=['POST'])
-def update_user():
-    data = request.json
-    userId = data.get('userId')
-    newFirstname = data.get('newFirstname')
-    newLastname = data.get('newLastname')
-    newEmail = data.get('newEmail')
-    newUsername = data.get('newUsername')
-    newJobtitle = data.get('newJobtitle')
-    newStreetAddress = data.get('newStreetAddress')
-    newLocation = data.get('newLocation')
-    newPhoneNumber = data.get('newPhoneNumber')
-    newRole = data.get('newRole')
-    newBirthdate = data.get('newBirthdate')
-    newEmploymentStatus = data.get('newEmploymentStatus')
-    newDepartmentId = data.get('newDepartmentId')
-    debugMode = data.get('debugMode')
-    
-    print('data', data)
-
-    result = update_user_in_db(userId, newFirstname, newLastname, newEmail, newUsername, newJobtitle, newStreetAddress,
-                               newLocation, newPhoneNumber, newRole, newBirthdate, newEmploymentStatus, newDepartmentId, debugMode)
-
-    return jsonify({'result': result})
 # ---------------------------------------
 
 if __name__ == '__main__':

@@ -212,3 +212,34 @@
         }
     }
 }
+
+// ---------------------------------------
+// Footer
+// ---------------------------------------
+
+.footer {
+    background-color: var(--footer-bg-color);
+    width: 100%;
+    color: var(--button-text);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    .footer-left {
+        font-size: 14px;
+        color: var(--field-content);
+        font-weight: 500;
+    }
+    .footer-right {
+        margin-right: 32px;
+        font-size: 24px;
+        a {
+            color: var(--field-content);
+            margin-left: 12px;
+
+            &:hover {
+                color: var(--button-hover);
+            }
+        }
+    }
+}

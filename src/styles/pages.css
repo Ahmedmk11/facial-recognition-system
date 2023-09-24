@@ -1,6 +1,31 @@
+body.light {
+  --navbar-color: rgb(86, 86, 255);
+  --navbar-items-color: rgba(255, 255, 255, 0.95);
+  --page-item-bg: #efefef;
+  --profile-picture-add: #dfdfdf;
+  --field-label: #b6b6b6;
+  --field-content: rgba(0, 0, 0, 0.8);
+  --profile-picture: #d9d9d9;
+  --profile-picture-bottom: #c9c9c9;
+  --ppcr-title: #a5a5a5;
+  --button-text: rgba(255, 255, 255, 0.95);
+  --button-hover: darkblue;
+  --button-active: royalblue;
+  --button-hover-sec: #5a6268;
+  --button-active-sec: #4e555b;
+  --error-msg: #dc3545;
+  --footer-bg-color: #efefef;
+}
+
+body.dark {
+  --navbar-items-color: rgb(0, 0, 0);
+}
+
 #home-page,
 #profile-page,
-#attendance-page {
+#attendance-page,
+#register-page,
+#login-page {
   height: fit-content;
   min-height: 100%;
   width: 100%;
@@ -46,7 +71,7 @@
   -moz-border-radius: 26px;
   -ms-border-radius: 26px;
   -o-border-radius: 26px;
-  background-color: var(--profile-right-bg);
+  background-color: var(--page-item-bg);
   margin: auto;
 }
 #profile-page #profile-page-content #profile-page-content-right .form-btns .anticon {
@@ -102,6 +127,47 @@
   background-color: var(--button-active-sec) !important;
   box-shadow: none !important;
   outline: none !important;
+}
+
+.error-msg {
+  color: var(--error-msg);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+#register-form-container {
+  width: 550px;
+  background-color: var(--page-item-bg);
+  padding: 26px;
+  margin: 26px;
+  box-sizing: border-box;
+  border-radius: 20px;
+  -webkit-border-radius: 20px;
+  -moz-border-radius: 20px;
+  -ms-border-radius: 20px;
+  -o-border-radius: 20px;
+}
+#register-form-container h3 {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 26px;
+  color: var(--field-content);
+}
+#register-form-container .ant-row {
+  width: 100% !important;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+#register-form-container label {
+  margin-right: 100%;
+}
+#register-form-container .ant-picker {
+  width: 100%;
+}
+#register-form-container .ant-btn {
+  width: 100%;
 }
 
 /*# sourceMappingURL=pages.css.map */

@@ -1,4 +1,4 @@
-import { Input } from 'antd'
+import { DatePicker, Input, message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import NavBar from '../components/NavBar'
@@ -15,6 +15,13 @@ import { dateToString } from '../utils/DateToString'
 import { getDepartmentID } from '../utils/GetDepartmentIDFromNameSite'
 import { updateUser } from '../utils/UpdateUser'
 import { stringToDate } from '../utils/stringToDate'
+import { stringToDayJs } from '../utils/StringToDayJs'
+import { dayJsToString } from '../utils/DayJsToString'
+import {
+    checkEmailInUse,
+    checkNumberInUse,
+    checkUserNameInUse,
+} from '../utils/ValidationAlreadyExists'
 // import { updateUser } from '../utils/UpdateUser'
 
 function Profile() {
@@ -51,6 +58,114 @@ function Profile() {
     const [site, setSite] = useState<string>('TBA')
 
     const [selectedDepartments, setSelectedDepartments] = useState<any>('')
+
+    const [firstNameError, setFirstNameError] = useState<string>('')
+    const [lastNameError, setLastNameError] = useState<string>('')
+    const [userNameError, setUserNameError] = useState<string>('')
+    const [emailError, setEmailError] = useState<string>('')
+    const [phoneError, setPhoneError] = useState<string>('')
+    const [locationError, setLocationError] = useState<string>('')
+    const [addressError, setAddressError] = useState<string>('')
+    const [jobTitleError, setJobTitleError] = useState<string>('')
+
+    const validateFirstName = (value: string) => {
+        if (/^[A-Za-z]{2,128}$/.test(value)) {
+            setFirstNameError('')
+        } else {
+            setFirstNameError(
+                'Please enter English letters only and between 2 to 128 characters.'
+            )
+        }
+    }
+
+    const validateLastName = (value: string) => {
+        if (/^[A-Za-z]{2,128}$/.test(value)) {
+            setLastNameError('')
+        } else {
+            setLastNameError(
+                'Please enter English letters only and between 2 to 128 characters.'
+            )
+        }
+    }
+
+    const validateUserName = async (value: string) => {
+        if (/^[A-Za-z0-9_]{6,64}$/.test(value)) {
+            if (value == selectedUser[4]) {
+                setUserNameError('')
+            } else {
+                try {
+                    await checkUserNameInUse({}, value)
+                } catch (error) {
+                    setUserNameError('Username is taken')
+                }
+            }
+        } else {
+            setUserNameError(
+                'Please enter 6 to 64 characters, letters, numbers, and underscores only.'
+            )
+        }
+    }
+
+    const validateEmail = async (value: string) => {
+        if (/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,128}$/.test(value)) {
+            if (value == selectedUser[3]) {
+                setEmailError('')
+            } else {
+                try {
+                    await checkEmailInUse({}, value)
+                } catch (error) {
+                    setEmailError('Email is already in use')
+                }
+            }
+        } else {
+            setEmailError('Please enter a valid email address.')
+        }
+    }
+
+    const validatePhone = async (value: string) => {
+        if (/^[\d()+-]{0,15}$/.test(value)) {
+            if (value == selectedUser[7]) {
+                setPhoneError('')
+            } else {
+                try {
+                    await checkNumberInUse({}, value)
+                } catch (error) {
+                    setPhoneError('Phone number is already in use')
+                }
+            }
+        } else {
+            setPhoneError('Please enter a valid phone number.')
+        }
+    }
+
+    const validateLocation = (value: string) => {
+        if (
+            /^[A-Za-z, ]{0,255}$/.test(value) &&
+            value.split(',').length === 2
+        ) {
+            setLocationError('')
+        } else {
+            setLocationError(
+                'Please enter a valid location, must contain a comma. (e.g. City, Country).'
+            )
+        }
+    }
+
+    const validateAddress = (value: string) => {
+        if (value.length <= 95) {
+            setAddressError('')
+        } else {
+            setAddressError("Address shouldn't exceed 95 characters.")
+        }
+    }
+
+    const validateJobTitle = (value: string) => {
+        if (value.length <= 128) {
+            setJobTitleError('')
+        } else {
+            setJobTitleError("Job title shouldn't exceed 128 characters.")
+        }
+    }
 
     useEffect(() => {
         if (selectedUser[0]) {
@@ -95,12 +210,6 @@ function Profile() {
         if (selectedUser[12]) {
             setSelectedDepartments(`dep_${selectedUser[12]}`)
         }
-        // if (selectedUser[10]) {
-        //     setSelectedRoles(`${selectedUser[8]}`)
-        // }
-        // if (selectedUser[11]) {
-        //     setSelectedUserStatus(`u_${selectedUser[11]}`)
-        // }
     }, [selectedUser])
 
     const checkDepSiteResponse = async (uid = '') => {
@@ -316,6 +425,14 @@ function Profile() {
             .catch((error) => {
                 console.error(error)
             })
+        setFirstNameError('')
+        setLastNameError('')
+        setUserNameError('')
+        setEmailError('')
+        setPhoneError('')
+        setLocationError('')
+        setAddressError('')
+        setJobTitleError('')
         setIsEdit(false)
     }
 
@@ -324,78 +441,109 @@ function Profile() {
     }, [role])
 
     async function handleSave() {
-        updateUser(
-            selectedUser[0],
-            firstName,
-            lastName,
-            email,
-            userName,
-            jobTitle,
-            address,
-            location,
-            phone,
-            userRole,
-            stringToDate(birthdate),
-            status,
-            parseInt(selectedDepartments.split('_')[1]),
-            true
-        )
-            .then((result: any) => {
-                console.log('User updated successfully:', result)
-            })
-            .catch((error: any) => {
-                console.error('Failed to update user:', error)
-            })
+        if (
+            !firstNameError &&
+            !lastNameError &&
+            !userNameError &&
+            !emailError &&
+            !phoneError &&
+            !locationError &&
+            !addressError &&
+            !jobTitleError
+        ) {
+            updateUser(
+                selectedUser[0],
+                firstName,
+                lastName,
+                email,
+                userName,
+                jobTitle,
+                address,
+                location,
+                phone,
+                userRole,
+                stringToDate(birthdate),
+                status,
+                parseInt(selectedDepartments.split('_')[1]),
+                true
+            )
+                .then((result: any) => {
+                    console.log('User updated successfully:', result)
+                })
+                .catch((error: any) => {
+                    console.error('Failed to update user:', error)
+                })
 
-        setIsEdit(false)
+            setIsEdit(false)
+        } else {
+            message.error(
+                ' Please review the highlighted fields and make sure they meet the required criteria before saving.',
+                4
+            )
+        }
     }
 
-    function handleFirstNameChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setFirstName(e.target.value)
+    const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value
+        setFirstName(value)
+        validateFirstName(value)
     }
 
-    function handleLastNameChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setLastName(e.target.value)
+    const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value
+        setLastName(value)
+        validateLastName(value)
     }
 
-    function handleUserNameChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setUserName(e.target.value)
+    const handleUserNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value
+        setUserName(value)
+        validateUserName(value)
     }
 
-    function handleEmailChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setEmail(e.target.value)
+    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value
+        setEmail(value)
+        validateEmail(value)
     }
 
-    function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setPhone(e.target.value)
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value
+        setPhone(value)
+        validatePhone(value)
     }
 
-    function handleBirthdateChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setBirthdate(e.target.value)
+    const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value
+        setLocation(value)
+        validateLocation(value)
     }
 
-    function handleLocationChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setLocation(e.target.value)
+    const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value
+        setAddress(value)
+        validateAddress(value)
     }
 
-    function handleAddressChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setAddress(e.target.value)
+    const handleJobTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value
+        setJobTitle(value)
+        validateJobTitle(value)
     }
 
-    function handleJobTitleChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setJobTitle(e.target.value)
+    function handleBirthdateChange(d: any) {
+        setBirthdate(d)
     }
 
-    // useEffect(() => {
-    //     setUserRole(selectedRoles)
-    // }, [selectedRoles])
     useEffect(() => {
         getDepartmentsResponse()
             .then((departments: any) => {
                 const foundDepartment = departments.find(
-                    (department: any) => department[0] == selectedDepartments
+                    (department: any) =>
+                        department[0] == selectedDepartments.split('_')[1]
                 )
                 if (foundDepartment) {
+                    console.log(foundDepartment)
                     setDep(foundDepartment[1])
                     setSite(foundDepartment[2])
                 }
@@ -553,6 +701,11 @@ function Profile() {
                                                 }}
                                                 value={firstName}
                                             />
+                                            {firstNameError && (
+                                                <div className='error-msg'>
+                                                    {firstNameError}
+                                                </div>
+                                            )}
                                         </div>
                                         <div className='col-5'>
                                             <Input
@@ -562,6 +715,11 @@ function Profile() {
                                                 }}
                                                 value={lastName}
                                             />
+                                            {lastNameError && (
+                                                <div className='error-msg'>
+                                                    {lastNameError}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 ) : (
@@ -578,6 +736,11 @@ function Profile() {
                                             }}
                                             value={userName}
                                         />
+                                        {userNameError && (
+                                            <div className='error-msg'>
+                                                {userNameError}
+                                            </div>
+                                        )}
                                     </div>
                                 ) : (
                                     <p id='username'>@{userName}</p>
@@ -594,13 +757,20 @@ function Profile() {
                                     <div className='field-component'>
                                         <p className='field-label'>Email</p>
                                         {isEdit ? (
-                                            <Input
-                                                type='text'
-                                                onChange={(e) => {
-                                                    handleEmailChange(e)
-                                                }}
-                                                value={email}
-                                            />
+                                            <>
+                                                <Input
+                                                    type='text'
+                                                    onChange={(e) => {
+                                                        handleEmailChange(e)
+                                                    }}
+                                                    value={email}
+                                                />
+                                                {emailError && (
+                                                    <div className='error-msg'>
+                                                        {emailError}
+                                                    </div>
+                                                )}
+                                            </>
                                         ) : (
                                             <p className='field-content'>
                                                 {email}
@@ -614,13 +784,20 @@ function Profile() {
                                             Phone Number
                                         </p>
                                         {isEdit ? (
-                                            <Input
-                                                type='text'
-                                                onChange={(e) => {
-                                                    handlePhoneChange(e)
-                                                }}
-                                                value={phone}
-                                            />
+                                            <>
+                                                <Input
+                                                    type='text'
+                                                    onChange={(e) => {
+                                                        handlePhoneChange(e)
+                                                    }}
+                                                    value={phone}
+                                                />
+                                                {phoneError && (
+                                                    <div className='error-msg'>
+                                                        {phoneError}
+                                                    </div>
+                                                )}
+                                            </>
                                         ) : (
                                             <p className='field-content'>
                                                 {phone}
@@ -634,12 +811,20 @@ function Profile() {
                                     <div className='field-component'>
                                         <p className='field-label'>Birthdate</p>
                                         {isEdit ? (
-                                            <Input
-                                                type='text'
-                                                onChange={(e) => {
-                                                    handleBirthdateChange(e)
+                                            // <Input
+                                            //     type='text'
+                                            //     onChange={(e) => {
+                                            //         handleBirthdateChange(e)
+                                            //     }}
+                                            //     value={birthdate}
+                                            // />
+                                            <DatePicker
+                                                value={stringToDayJs(birthdate)}
+                                                onChange={(dayjs: any) => {
+                                                    handleBirthdateChange(
+                                                        dayJsToString(dayjs)
+                                                    )
                                                 }}
-                                                value={birthdate}
                                             />
                                         ) : (
                                             <p className='field-content'>
@@ -652,13 +837,20 @@ function Profile() {
                                     <div className='field-component'>
                                         <p className='field-label'>Location</p>
                                         {isEdit ? (
-                                            <Input
-                                                type='text'
-                                                onChange={(e) => {
-                                                    handleLocationChange(e)
-                                                }}
-                                                value={location}
-                                            />
+                                            <>
+                                                <Input
+                                                    type='text'
+                                                    onChange={(e) => {
+                                                        handleLocationChange(e)
+                                                    }}
+                                                    value={location}
+                                                />
+                                                {locationError && (
+                                                    <div className='error-msg'>
+                                                        {locationError}
+                                                    </div>
+                                                )}
+                                            </>
                                         ) : (
                                             <p className='field-content'>
                                                 {location}
@@ -672,13 +864,20 @@ function Profile() {
                                             Street Address
                                         </p>
                                         {isEdit ? (
-                                            <Input
-                                                type='text'
-                                                onChange={(e) => {
-                                                    handleAddressChange(e)
-                                                }}
-                                                value={address}
-                                            />
+                                            <>
+                                                <Input
+                                                    type='text'
+                                                    onChange={(e) => {
+                                                        handleAddressChange(e)
+                                                    }}
+                                                    value={address}
+                                                />
+                                                {addressError && (
+                                                    <div className='error-msg'>
+                                                        {addressError}
+                                                    </div>
+                                                )}
+                                            </>
                                         ) : (
                                             <p className='field-content'>
                                                 {address}
@@ -702,13 +901,20 @@ function Profile() {
                                     <div className='field-component'>
                                         <p className='field-label'>Job Title</p>
                                         {isEdit && isAllowed ? (
-                                            <Input
-                                                type='text'
-                                                onChange={(e) => {
-                                                    handleJobTitleChange(e)
-                                                }}
-                                                value={jobTitle}
-                                            />
+                                            <>
+                                                <Input
+                                                    type='text'
+                                                    onChange={(e) => {
+                                                        handleJobTitleChange(e)
+                                                    }}
+                                                    value={jobTitle}
+                                                />
+                                                {jobTitleError && (
+                                                    <div className='error-msg'>
+                                                        {jobTitleError}
+                                                    </div>
+                                                )}
+                                            </>
                                         ) : (
                                             <p className='field-content'>
                                                 {jobTitle}
