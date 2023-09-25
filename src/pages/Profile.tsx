@@ -691,7 +691,7 @@ function Profile() {
                     </div>
                     <div className='row'>
                         <div className='col col-3' style={{ marginRight: 26 }}>
-                            <ProfilePicture id={currUser[0]} />
+                            <ProfilePicture id={selectedUser[0]} />
                         </div>
                         <div className='col col-8'>
                             <div

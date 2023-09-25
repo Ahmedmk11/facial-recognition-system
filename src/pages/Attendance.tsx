@@ -12,6 +12,7 @@ import type { ColumnsType } from 'antd/es/table'
 import type { TableRowSelection } from 'antd/es/table/interface'
 import { getUserAttendance } from '../utils/GetUserAttendance'
 import { convertDateFormats } from '../utils/ConvertDateTimeToString'
+import dayjs from 'dayjs'
 
 interface DataType {
     key: React.Key
@@ -28,6 +29,8 @@ function Attendance() {
 
     const { Option, OptGroup } = Select
     const { RangePicker } = DatePicker
+    const [dateRange, setDateRange] = useState<any>([])
+
     const [role, setRole] = useState<any>(null)
     const [selectedOptions, setSelectedOptions] = useState<any>([])
     const [departments, setDepartments] = useState<any>([])
@@ -55,8 +58,17 @@ function Attendance() {
                     .map((option: string) => option.split('_')[1])
                     .join(',')
             )
-                .then((attendance) => {
-                    setAttendance(attendance)
+                .then((attendance: any) => {
+                    const filteredAttendance = attendance.filter((a: any) => {
+                        const attendanceDate = dayjs(a[2])
+                        return (
+                            (typeof dateRange !== 'undefined' &&
+                                dateRange.length === 0) ||
+                            (attendanceDate.isAfter(dayjs(dateRange[0])) &&
+                                attendanceDate.isBefore(dayjs(dateRange[1])))
+                        )
+                    })
+                    setAttendance(filteredAttendance)
                 })
                 .catch((error) => {
                     console.error(error)
@@ -65,13 +77,26 @@ function Attendance() {
             setAttendance([])
             setData([])
         }
-    }, [selectedOptions])
+    }, [selectedOptions, dateRange])
+
+    useEffect(() => {
+        console.log('newdates: ', dateRange)
+    }, [dateRange])
 
     useEffect(() => {
         console.log('blobloblobloblo', currUser)
         getUserAttendanceResponse(state ? `${state.uid}` : `${currUser[0]}`)
-            .then((attendance) => {
-                setAttendance(attendance)
+            .then((attendance: any) => {
+                const filteredAttendance = attendance.filter((a: any) => {
+                    const attendanceDate = dayjs(a[2])
+                    return (
+                        (typeof dateRange !== 'undefined' &&
+                            dateRange.length === 0) ||
+                        (attendanceDate.isAfter(dayjs(dateRange[0])) &&
+                            attendanceDate.isBefore(dayjs(dateRange[1])))
+                    )
+                })
+                setAttendance(filteredAttendance)
             })
             .catch((error) => {
                 console.error(error)
@@ -107,34 +132,29 @@ function Attendance() {
 
     useEffect(() => {
         if (attendance.length > 0) {
-            setData(
-                attendance.map((a: any, index: any) => ({
-                    key: index,
-                    uid: a[1],
-                    fullname: `${
-                        users.find((user: any) => {
-                            return user[0] == a[1]
-                        })[1]
-                    } ${
-                        users.find((user: any) => {
-                            return user[0] == a[1]
-                        })[2]
-                    }`,
-                    location: users.find((user: any) => {
+            const filteredData = attendance.map((a: any, index: any) => ({
+                key: index,
+                uid: a[1],
+                fullname: `${
+                    users.find((user: any) => {
                         return user[0] == a[1]
-                    })[5],
-                    date: convertDateFormats(a[2])[0],
-                    time: convertDateFormats(a[2])[1],
-                }))
-            )
-            console.log(
-                'yoyo',
-                users.find((user: any) => {
-                    user[0] == attendance[0][1]
-                })
-            )
+                    })[1]
+                } ${
+                    users.find((user: any) => {
+                        return user[0] == a[1]
+                    })[2]
+                }`,
+                location: users.find((user: any) => {
+                    return user[0] == a[1]
+                })[5],
+                date: convertDateFormats(a[2])[0],
+                time: convertDateFormats(a[2])[1],
+            }))
+            setData(filteredData)
+        } else {
+            setData([])
         }
-    }, [attendance])
+    }, [attendance, users])
 
     const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
         console.log('selectedRowKeys changed: ', newSelectedRowKeys)
@@ -303,6 +323,10 @@ function Attendance() {
         throw new Error('Function not implemented.')
     }
 
+    function handleDateChange(values: any): void {
+        setDateRange(values)
+    }
+
     return (
         <div id='attendance-page'>
             <NavBar />
@@ -341,7 +365,11 @@ function Attendance() {
                                 }}>
                                 {filteredOptions}
                             </Select>
-                            <RangePicker showTime allowClear />
+                            <RangePicker
+                                showTime
+                                allowClear
+                                onChange={handleDateChange}
+                            />
                         </div>
                         <button
                             className='btn btn-primary btn-lg float-right custom-button'
