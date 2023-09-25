@@ -13,6 +13,7 @@ import type { TableRowSelection } from 'antd/es/table/interface'
 import { getUserAttendance } from '../utils/GetUserAttendance'
 import { convertDateFormats } from '../utils/ConvertDateTimeToString'
 import dayjs from 'dayjs'
+import { downloadExcel } from '../utils/DownloadReport'
 
 interface DataType {
     key: React.Key
@@ -38,6 +39,14 @@ function Attendance() {
     const [users, setUsers] = useState<any>([])
     const [data, setData] = useState<any>([])
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
+
+    const [downloadData, setDownloadData] = useState({
+        ID: [] as number[],
+        FullName: [] as string[],
+        Location: [] as string[],
+        Date: [] as string[],
+        Time: [] as string[],
+    })
 
     const [attendance, setAttendance] = useState<any>([])
 
@@ -78,6 +87,27 @@ function Attendance() {
             setData([])
         }
     }, [selectedOptions, dateRange])
+
+    useEffect(() => {
+        const newDownloadData = {
+            ID: [] as number[],
+            FullName: [] as string[],
+            Location: [] as string[],
+            Date: [] as string[],
+            Time: [] as string[],
+        }
+
+        selectedRowKeys.forEach((key) => {
+            const selectedRow = data[key]
+            newDownloadData.ID.push(selectedRow.uid)
+            newDownloadData.FullName.push(selectedRow.fullname)
+            newDownloadData.Location.push(selectedRow.location)
+            newDownloadData.Date.push(selectedRow.date)
+            newDownloadData.Time.push(selectedRow.time)
+        })
+
+        setDownloadData(newDownloadData)
+    }, [selectedRowKeys, data])
 
     useEffect(() => {
         console.log('newdates: ', dateRange)
@@ -134,21 +164,33 @@ function Attendance() {
         if (attendance.length > 0) {
             const filteredData = attendance.map((a: any, index: any) => ({
                 key: index,
-                uid: a[1],
+                uid: a ? a[1] : 'null',
                 fullname: `${
                     users.find((user: any) => {
                         return user[0] == a[1]
-                    })[1]
+                    })
+                        ? users.find((user: any) => {
+                              return user[0] == a[1]
+                          })[1]
+                        : 'null'
                 } ${
                     users.find((user: any) => {
                         return user[0] == a[1]
-                    })[2]
+                    })
+                        ? users.find((user: any) => {
+                              return user[0] == a[1]
+                          })[2]
+                        : 'null'
                 }`,
                 location: users.find((user: any) => {
                     return user[0] == a[1]
-                })[5],
-                date: convertDateFormats(a[2])[0],
-                time: convertDateFormats(a[2])[1],
+                })
+                    ? users.find((user: any) => {
+                          return user[0] == a[1]
+                      })[5]
+                    : 'null',
+                date: a ? convertDateFormats(a[2])[0] : 'null',
+                time: a ? convertDateFormats(a[2])[1] : 'null',
             }))
             setData(filteredData)
         } else {
@@ -266,6 +308,10 @@ function Attendance() {
         console.log('currrr', currUser)
     }, [currUser])
 
+    useEffect(() => {
+        console.log('downloaddata', downloadData)
+    }, [downloadData])
+
     const filteredOptions = departments
         .filter(
             (department: any) =>
@@ -320,7 +366,7 @@ function Attendance() {
         setSelectedOptions(selectedValues)
     }
     function handleDownloadReport() {
-        throw new Error('Function not implemented.')
+        downloadExcel(downloadData)
     }
 
     function handleDateChange(values: any): void {
@@ -389,6 +435,15 @@ function Attendance() {
                         rowSelection={rowSelection}
                         columns={columns}
                         dataSource={data}
+                        onRow={(record, rowIndex) => {
+                            return {
+                                onClick: (event) => {}, // click row
+                                onDoubleClick: (event) => {}, // double click row
+                                onContextMenu: (event) => {}, // right button click row
+                                onMouseEnter: (event) => {}, // mouse enter row
+                                onMouseLeave: (event) => {}, // mouse leave row
+                            }
+                        }}
                     />
                 </div>
             </div>

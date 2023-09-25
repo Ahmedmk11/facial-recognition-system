@@ -81,7 +81,9 @@ function NavBar() {
                         You have {getAdminNotifications()?.length ?? 0}{' '}
                         notifications.{' '}
                     </p>
-                    <Divider style={{ margin: '0' }} />
+                    {getAdminNotifications()?.length ? (
+                        <Divider style={{ margin: '0' }} />
+                    ) : null}
                 </>
             ),
             key: 'tasksDue',

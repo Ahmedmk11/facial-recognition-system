@@ -3,12 +3,16 @@
 # ---------------------------------------
 
 from datetime import datetime
+import json
 import os
 from typing import *
-from flask import Flask, make_response, redirect, request, jsonify, session, send_from_directory, url_for
+from flask import Flask, make_response, redirect, request, jsonify, send_file, session, send_from_directory, url_for
 from flask_cors import CORS
 from mysql.connector.connection import MySQLConnection
 import mysql.connector
+from openpyxl import Workbook
+from openpyxl.styles import Alignment
+import pandas as pd
 
 app = Flask(__name__, static_folder='../dist')
 CORS(app, origins="http://127.0.0.1:5173", supports_credentials=True)
@@ -388,6 +392,39 @@ def get_dep_id():
     
     [[did]] = call_procedure('GetDepartmentIDFromNameSite', (name, site))
     return jsonify({'did': did})
+
+@app.route('/api/generate-excel', methods=['GET'])
+def generate_excel():
+    data_param = request.args.get('data')
+    data = json.loads(data_param)
+
+    df = pd.DataFrame(data)
+
+    excel_writer = pd.ExcelWriter('sample.xlsx', engine='openpyxl')
+    excel_writer.book = Workbook()
+
+    df.to_excel(excel_writer, index=False, sheet_name='Sheet')
+
+    sheet = excel_writer.sheets['Sheet']
+    for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=1, max_col=sheet.max_column):
+        for cell in row:
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+
+    for column in sheet.columns:
+        max_length = 0
+        column = [cell for cell in column]
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(cell.value)
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        sheet.column_dimensions[column[0].column_letter].width = adjusted_width
+
+    excel_writer.save()
+    
+    return send_file('sample.xlsx', as_attachment=True)
 
 # ---------------------------------------
 
