@@ -62,7 +62,6 @@ body.dark {
   max-height: 30px !important;
 }
 #profile-page #profile-page-content #profile-page-content-right {
-  margin-right: 8px;
   box-sizing: border-box;
   padding: 26px;
   width: 80%;
@@ -75,6 +74,7 @@ body.dark {
   -o-border-radius: 12px;
   background-color: var(--page-item-bg);
   margin: auto;
+  margin-left: 10px;
 }
 #profile-page #profile-page-content #profile-page-content-right .form-btns .anticon {
   margin-right: 8px;

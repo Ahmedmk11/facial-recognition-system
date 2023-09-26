@@ -80,6 +80,7 @@ function Profile() {
     const [screenshot, setScreenshot] = useState<any>(null)
 
     const webcamRef = React.useRef(null)
+    const inputRef = React.useRef(null)
     const [open, setOpen] = useState(false)
 
     const showModal = () => {
@@ -661,42 +662,40 @@ function Profile() {
         console.log('hmmsttatus', status)
     }, [status])
 
+    function upload(event: any): void {
+        if (inputRef && inputRef.current) {
+            const inp = inputRef.current as any
+            inp.click()
+        }
+    }
+
+    function handleFileUpload(event: any) {
+        const selectedFile = event.target.files[0]
+        if (selectedFile) {
+            if (selectedFile.type === 'image/jpeg') {
+                const reader = new FileReader()
+                reader.onload = (e) => {
+                    const base64Image = e.target?.result as string
+                    console.log('Base64-encoded image:', base64Image)
+                    if (base64Image) {
+                        setScreenshot(base64Image)
+                    } else {
+                        console.error('Invalid base64 image format')
+                    }
+                }
+
+                reader.readAsDataURL(selectedFile)
+            } else {
+                console.log('Please select a JPEG image.')
+            }
+        }
+    }
+
     return (
         <div id='profile-page'>
             <NavBar />
             <div></div>
             <div id='profile-page-content'>
-                {role == 'employee' ? null : (
-                    <div id='profile-page-content-left'>
-                        <Select
-                            disabled={isEdit}
-                            onChange={handleOptionSelect}
-                            value={selectedOptions}
-                            filterOption={(inputValue, option) => {
-                                let optionLabel = option?.props?.children || ''
-                                if (Array.isArray(optionLabel)) {
-                                    optionLabel = optionLabel.join('')
-                                }
-
-                                const optgroupLabel = option?.props?.label || ''
-
-                                return (
-                                    (typeof optionLabel === 'string' &&
-                                        optionLabel
-                                            .toLowerCase()
-                                            .includes(
-                                                inputValue.toLowerCase()
-                                            )) ||
-                                    (typeof optgroupLabel === 'string' &&
-                                        optgroupLabel
-                                            .toLowerCase()
-                                            .includes(inputValue.toLowerCase()))
-                                )
-                            }}>
-                            {filteredOptions}
-                        </Select>
-                    </div>
-                )}
                 <div id='profile-page-content-right' className='row'>
                     <div className='row justify-content-end'>
                         {isEdit ? (
@@ -1175,11 +1174,42 @@ function Profile() {
                         </button>
                     </div>
                 </div>
+                {role == 'employee' ? null : (
+                    <div id='profile-page-content-left'>
+                        <Select
+                            disabled={isEdit}
+                            onChange={handleOptionSelect}
+                            value={selectedOptions}
+                            filterOption={(inputValue, option) => {
+                                let optionLabel = option?.props?.children || ''
+                                if (Array.isArray(optionLabel)) {
+                                    optionLabel = optionLabel.join('')
+                                }
+
+                                const optgroupLabel = option?.props?.label || ''
+
+                                return (
+                                    (typeof optionLabel === 'string' &&
+                                        optionLabel
+                                            .toLowerCase()
+                                            .includes(
+                                                inputValue.toLowerCase()
+                                            )) ||
+                                    (typeof optgroupLabel === 'string' &&
+                                        optgroupLabel
+                                            .toLowerCase()
+                                            .includes(inputValue.toLowerCase()))
+                                )
+                            }}>
+                            {filteredOptions}
+                        </Select>
+                    </div>
+                )}
             </div>
             <Footer />
             <Modal
                 destroyOnClose
-                title='Basic Modal'
+                title='Change Profile Picture'
                 open={open}
                 onOk={handleOk}
                 onCancel={handleCancelModal}
@@ -1189,15 +1219,25 @@ function Profile() {
                         <button
                             type='button'
                             className='btn btn-primary btn-lg float-right custom-button'
-                            onClick={screenshot ? retake : capture}>
-                            {screenshot ? 'Retake' : 'Capture'}
+                            onClick={
+                                currUser[0] == selectedUser[0]
+                                    ? screenshot
+                                        ? retake
+                                        : capture
+                                    : upload
+                            }>
+                            {currUser[0] == selectedUser[0]
+                                ? screenshot
+                                    ? 'Retake'
+                                    : 'Capture'
+                                : 'Upload'}
                         </button>
                         <button
                             disabled={screenshot ? false : true}
                             type='button'
                             className='btn btn-primary btn-lg float-right custom-button'
                             onClick={handleSaveImage}>
-                            Save
+                            Done
                         </button>
                         <button
                             type='button'
@@ -1208,11 +1248,11 @@ function Profile() {
                     </div>,
                 ]}>
                 <div id='webcam-container'>
-                    {screenshot ? (
-                        <div>
+                    {screenshot && currUser[0] == selectedUser[0] ? (
+                        <div style={{ height: 480, width: 638.66 }}>
                             <img src={screenshot} alt='Captured' />
                         </div>
-                    ) : (
+                    ) : currUser[0] == selectedUser[0] ? (
                         <Webcam
                             ref={webcamRef}
                             audio={false}
@@ -1222,6 +1262,26 @@ function Profile() {
                             screenshotQuality={1}
                             screenshotFormat='image/jpeg'
                         />
+                    ) : (
+                        <>
+                            <div style={{ height: 480, width: 638.66 }}>
+                                <img
+                                    src={
+                                        screenshot
+                                            ? screenshot
+                                            : `data:image/jpeg;base64, ${image}`
+                                    }
+                                    alt='Captured'
+                                />
+                            </div>
+                            <input
+                                ref={inputRef}
+                                style={{ display: 'none' }}
+                                type='file'
+                                accept='image/jpeg'
+                                onChange={handleFileUpload}
+                            />
+                        </>
                     )}
                 </div>
             </Modal>

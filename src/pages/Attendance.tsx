@@ -393,8 +393,19 @@ function Attendance() {
         <div id='attendance-page'>
             <NavBar />
             <div id='attendance-content'>
-                {role == 'employee' ? null : (
-                    <div id='attendance-filters'>
+                <div id='attendance-container'>
+                    <Table
+                        style={{ paddingLeft: 12 }}
+                        rowSelection={rowSelection}
+                        columns={columns}
+                        dataSource={data}
+                        pagination={{
+                            position: ['bottomLeft'],
+                        }}
+                    />
+                </div>
+                <div id='attendance-filters'>
+                    {role == 'employee' ? null : (
                         <div id='inputs'>
                             <Select
                                 allowClear
@@ -433,37 +444,22 @@ function Attendance() {
                                 onChange={handleDateChange}
                             />
                         </div>
-                        <button
-                            disabled={
-                                downloadData.ID && downloadData.ID.length == 0
-                            }
-                            className='btn btn-primary btn-lg float-right custom-button'
-                            style={{
-                                fontSize: 15,
-                                width: '85%',
-                            }}
-                            onClick={() => {
-                                handleDownloadReport()
-                            }}>
-                            Download Report
-                        </button>
-                    </div>
-                )}
-                <div id='attendance-container'>
-                    <Table
-                        rowSelection={rowSelection}
-                        columns={columns}
-                        dataSource={data}
-                        onRow={(record, rowIndex) => {
-                            return {
-                                onClick: (event) => {}, // click row
-                                onDoubleClick: (event) => {}, // double click row
-                                onContextMenu: (event) => {}, // right button click row
-                                onMouseEnter: (event) => {}, // mouse enter row
-                                onMouseLeave: (event) => {}, // mouse leave row
-                            }
+                    )}
+
+                    <button
+                        disabled={
+                            downloadData.ID && downloadData.ID.length == 0
+                        }
+                        className='btn btn-primary btn-lg float-right custom-button'
+                        style={{
+                            fontSize: 15,
+                            width: '85%',
                         }}
-                    />
+                        onClick={() => {
+                            handleDownloadReport()
+                        }}>
+                        Download Report
+                    </button>
                 </div>
             </div>
             <Footer />
