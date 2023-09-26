@@ -2,6 +2,8 @@
 # Imports & Initialization
 # ---------------------------------------
 
+import asyncio
+import base64
 from datetime import datetime
 import json
 import os
@@ -16,6 +18,20 @@ import pandas as pd
 
 app = Flask(__name__, static_folder='../dist')
 CORS(app, origins="http://127.0.0.1:5173", supports_credentials=True)
+
+# ---------------------------------------
+# Database
+# ---------------------------------------
+
+def base64_to_blob(base64_data):
+    parts = base64_data.split(',')
+    if len(parts) != 2:
+        raise ValueError("Invalid Base64 data format")
+    content_type, data = parts
+    content_type = content_type.split(';')[0]
+    decoded_data = base64.b64decode(data)
+
+    return decoded_data
 
 # ---------------------------------------
 # Database
@@ -52,13 +68,15 @@ def call_procedure(procedure_name: str, *params: str):
     return result_sets
 
 def update_user_in_db(userId, newFirstname, newLastname, newEmail, newUsername, newJobtitle, newStreetAddress,
-                      newLocation, newPhoneNumber, newRole, newBirthdate, newEmploymentStatus, newDepartmentId, debugMode):
+                      newLocation, newPhoneNumber, newRole, newBirthdate, newEmploymentStatus, newDepartmentId, newImage, debugMode):
     try:
+        newImageBlob = base64_to_blob(newImage)
+        print('newImageBlob', newImageBlob)
         conn = create_db_connection()
         cursor = conn.cursor()
         cursor.callproc("UpdateUser", (userId, newFirstname, newLastname, newEmail, newUsername, newJobtitle,
                                        newStreetAddress, newLocation, newPhoneNumber, newRole, newBirthdate,
-                                       newEmploymentStatus, newDepartmentId, debugMode))
+                                       newEmploymentStatus, newDepartmentId, newImageBlob, debugMode))
         conn.commit()
         cursor.close()
         conn.close()
@@ -98,17 +116,9 @@ def call_insert_procedure(
     try:
         connection = create_db_connection()
         cursor = connection.cursor()
-
-        out_param = 0
-
-        params_string = ', '.join(['%s' for _ in params])
-        cursor.callproc(procedure_name, params + (out_param,))
-
-        cursor.execute("SELECT @last_inserted_id")
-        last_inserted_id = cursor.fetchone()[0]
-
+        cursor.callproc(procedure_name, params)
         connection.commit()
-        return last_inserted_id
+        return
 
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -152,18 +162,24 @@ def register():
         street_address = data.get('street_address')
         location = data.get('location')
         phone_number = data.get('phone_number')
+        screenshot = data.get('screenshot')
+
+        screenshotBlob = base64_to_blob(screenshot)
 
         date_format = '%Y-%m-%dT%H:%M:%S.%fZ'
         parsed_date = datetime.strptime(data.get('birthdate'), date_format)
         birthdate = parsed_date.date()
 
-        if not (firstname and lastname and username and email and street_address and location and phone_number and birthdate):
+        if not (firstname and lastname and username and email and street_address and location and phone_number and birthdate and screenshot):
             error_response = {'error': 'Invalid or missing data'}
             return jsonify(error_response), 400
 
         procedure_name = "InsertUser"
-        params = (firstname, lastname, email, username, street_address, location, phone_number, birthdate)
-        inserted_id = call_insert_procedure(procedure_name, *params)
+        params = (firstname, lastname, email, username, street_address, location, phone_number, birthdate, screenshotBlob)
+        call_insert_procedure(procedure_name, *params)
+        res = call_procedure('GetIDByUserName', username)
+        print('renjfekjnefvnjk', res[0][0][0])
+        inserted_id = res[0][0][0]
 
         if inserted_id != -1:
             session['user'] = {
@@ -173,7 +189,7 @@ def register():
                 'firstname': firstname,
                 'lastname': lastname
             }
-            print(f"Data inserted successfully. Inserted ID: {inserted_id}")
+            print(f"Data inserted successfully. Inserted ID: {session}")
             response_data = {'message': 'Registration successful'}
             return jsonify(response_data), 200
         else:
@@ -243,12 +259,13 @@ def update_user():
     newBirthdate = data.get('newBirthdate')
     newEmploymentStatus = data.get('newEmploymentStatus')
     newDepartmentId = data.get('newDepartmentId')
+    newImage = data.get('newImage')
     debugMode = data.get('debugMode')
-    
+
     print('data', data)
 
     result = update_user_in_db(userId, newFirstname, newLastname, newEmail, newUsername, newJobtitle, newStreetAddress,
-                               newLocation, newPhoneNumber, newRole, newBirthdate, newEmploymentStatus, newDepartmentId, debugMode)
+                               newLocation, newPhoneNumber, newRole, newBirthdate, newEmploymentStatus, newDepartmentId, newImage, debugMode)
 
     return jsonify({'result': result})
     
@@ -375,6 +392,11 @@ def get_user_by_id():
         return jsonify({'error': 'No user found'})
     
     [[user]] = call_procedure('GetUserByID', uid)
+    user_list = list(user)
+    
+    base64_string = base64.b64encode(user_list[13]).decode('utf-8')
+    user_list[13] = base64_string
+    user = tuple(user_list)
     print(
         f'''
 the uid: {uid}
@@ -400,7 +422,7 @@ def generate_excel():
 
     df = pd.DataFrame(data)
 
-    excel_writer = pd.ExcelWriter('sample.xlsx', engine='openpyxl')
+    excel_writer = pd.ExcelWriter('downloads/attendance_reports/AttendanceReport.xlsx', engine='openpyxl')
     excel_writer.book = Workbook()
 
     df.to_excel(excel_writer, index=False, sheet_name='Sheet')
@@ -424,7 +446,7 @@ def generate_excel():
 
     excel_writer.save()
     
-    return send_file('sample.xlsx', as_attachment=True)
+    return send_file('downloads/attendance_reports/AttendanceReport.xlsx', as_attachment=True)
 
 # ---------------------------------------
 

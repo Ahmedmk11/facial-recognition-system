@@ -33,7 +33,7 @@ BEGIN
         birthdate DATE NOT NULL,
         employment_status VARCHAR(32),
         department_id INT, #
-        embedding BLOB, #
+        user_picture BLOB, #
         FOREIGN KEY (department_id) REFERENCES Department(id)
     );
 
@@ -62,6 +62,13 @@ BEGIN
     INSERT INTO Department (dep_status) VALUES (depStatus);
 END;
 
+CREATE PROCEDURE GetIDByUserName(IN uname VARCHAR(64))
+BEGIN
+    SELECT id FROM User WHERE username = uname;
+END;
+
+DROP PROCEDURE InsertUser
+
 CREATE PROCEDURE InsertUser(
   IN firstname VARCHAR(128),
   IN lastname VARCHAR(128),
@@ -71,7 +78,7 @@ CREATE PROCEDURE InsertUser(
   IN location VARCHAR(255),
   IN phone_number VARCHAR(15),
   IN birthdate DATE,
-  OUT last_inserted_id INT
+  IN user_picture MEDIUMBLOB
 )
 BEGIN
     INSERT INTO User (
@@ -86,7 +93,8 @@ BEGIN
         role,
         employment_status,
         date_joined,
-        department_id
+        department_id,
+        user_picture
     )
     VALUES (
         firstname,
@@ -100,11 +108,12 @@ BEGIN
         'employee',
         '1',
         CURDATE(),
-        5
+        5,
+        user_picture
     );
-
-    SET last_inserted_id = LAST_INSERT_ID();
 END;
+
+DROP PROCEDURE InsertUser
 
 CREATE PROCEDURE InsertAttendance(
     IN uid INT
@@ -212,6 +221,8 @@ BEGIN
     SELECT id FROM Department WHERE name = depName AND site = depSite;
 END;
 
+DROP PROCEDURE UpdateUser
+
 CREATE PROCEDURE UpdateUser(
     IN userId INT,
     IN newFirstname VARCHAR(128),
@@ -226,6 +237,7 @@ CREATE PROCEDURE UpdateUser(
     IN newBirthdate DATE,
     IN newEmploymentStatus VARCHAR(32),
     IN newDepartmentId INT,
+    IN newImage MEDIUMBLOB,
     IN debugMode BOOLEAN
 )
 BEGIN
@@ -246,7 +258,8 @@ BEGIN
         role = newRole,
         birthdate = newBirthdate,
         employment_status = newEmploymentStatus,
-        department_id = newDepartmentId
+        department_id = newDepartmentId,
+        user_picture = newImage
     WHERE
         id = userId;
 
@@ -331,7 +344,8 @@ CALL GetAllUsersByUsername('ahmedmk11');
 
 CALL GetUserByID(2);
 
-CALL InsertUser('hoho' ,'employee', 'em@gmail.com', 'emp11', '13 El nour 11, 6', 'Cairo', 'Egypt', '0120120142243', '2005-11-25', @pp);
+CALL InsertUser('fhoheo' ,'employee', 'emD@gmaDiefl.com', 'empDef1D1', '13 El nour 11, 6', 'Cairo, Egypt', '033423243', '2005-11-25', 'tefsttt', @pp);
+SELECT @pp
 
 CALL GetAllUsers();
 
@@ -344,8 +358,7 @@ CALL InsertAttendance('2023-09-12', 'ahmedmk11', @out)
 CALL GetUsernameCount('ahmedmk11');
 
 UPDATE User
-SET department_id = 5
-WHERE id = 6;
+SET user_picture = 'picture';
 
 ALTER TABLE Department CHANGE active dep_status VARCHAR(1);
 
@@ -367,3 +380,6 @@ SELECT * FROM User;
 CALL GetUserAttendance(1)
 
 CALL UpdateUser(1,'Ahmedd', 'Mahmoud', 'ahmedmahmoud1903@outlook.com', 'ahmedmk11', 'TBA', '13 El Nour', 'Cairo, Egypt', '+20155080848', 'super' , '2023-09-03', '1', 3)
+
+ALTER TABLE User
+MODIFY COLUMN user_picture MEDIUMBLOB;

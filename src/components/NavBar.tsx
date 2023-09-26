@@ -32,13 +32,15 @@ function NavBar() {
     const [role, setRole] = useState<any>(null)
 
     useEffect(() => {
-        checkUserRole()
-            .then((role) => {
-                setRole(role)
-            })
-            .catch((error) => {
-                console.log(error)
-            })
+        if (page != 'login' && page != 'register') {
+            checkUserRole()
+                .then((role) => {
+                    setRole(role)
+                })
+                .catch((error) => {
+                    console.log(error)
+                })
+        }
     }, [])
 
     const handleLogout = async () => {

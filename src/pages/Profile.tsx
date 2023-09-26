@@ -1,12 +1,17 @@
-import { DatePicker, Input, message } from 'antd'
+import { DatePicker, Input, Modal, message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import NavBar from '../components/NavBar'
 import { checkUserRole } from '../utils/CheckRole'
-import { EditOutlined, CloseOutlined, CheckOutlined } from '@ant-design/icons'
+import {
+    EditOutlined,
+    CloseOutlined,
+    CheckOutlined,
+    CameraOutlined,
+    UserOutlined,
+} from '@ant-design/icons'
 import { Select } from 'antd'
 
-import ProfilePicture from '../components/ProfilePicture'
 import { checkUserDepartmentAndSite } from '../utils/CheckUserDepartmentAndSite'
 import { getAllUsers } from '../utils/GetAllUsers'
 import { getAllDepartments } from '../utils/GetAllDepartments'
@@ -23,7 +28,7 @@ import {
     checkUserNameInUse,
 } from '../utils/ValidationAlreadyExists'
 import Footer from '../components/Footer'
-// import { updateUser } from '../utils/UpdateUser'
+import Webcam from 'react-webcam'
 
 function Profile() {
     const navigate = useNavigate()
@@ -31,6 +36,7 @@ function Profile() {
     const [currUser, setCurrUser] = useState<any>('')
     const [filteredOptions, setFilteredOptions] = useState<any>([])
     const [render, setRender] = useState<boolean>(true)
+    const [editProfilePic, setEditProfilePic] = useState<boolean>(false)
 
     const [role, setRole] = useState<any>(null)
     const [isAllowed, setIsAllowed] = useState<boolean>(false)
@@ -55,6 +61,7 @@ function Profile() {
     const [dateJoined, setDateJoined] = useState<string>('TBA')
     const [userRole, setUserRole] = useState<string>('TBA')
     const [status, setStatus] = useState<string>('TBA')
+    const [image, setImage] = useState<any>(null)
 
     const [dep, setDep] = useState<string>('TBA')
     const [site, setSite] = useState<string>('TBA')
@@ -69,6 +76,47 @@ function Profile() {
     const [locationError, setLocationError] = useState<string>('')
     const [addressError, setAddressError] = useState<string>('')
     const [jobTitleError, setJobTitleError] = useState<string>('')
+
+    const [screenshot, setScreenshot] = useState<any>(null)
+
+    const webcamRef = React.useRef(null)
+    const [open, setOpen] = useState(false)
+
+    const showModal = () => {
+        setScreenshot(null)
+        setIsEdit(true)
+        setOpen(true)
+    }
+
+    const handleOk = () => {
+        setOpen(false)
+        setScreenshot(null)
+    }
+
+    const handleCancelModal = () => {
+        setOpen(false)
+        setIsEdit(false)
+        setScreenshot(null)
+    }
+
+    const capture = React.useCallback(() => {
+        const cam = webcamRef.current as any
+        const imageSrc = cam.getScreenshot()
+        console.log(imageSrc)
+        setScreenshot(imageSrc)
+    }, [webcamRef])
+
+    const retake = React.useCallback(() => {
+        setScreenshot(null)
+    }, [webcamRef])
+
+    const handleSaveImage = () => {
+        if (screenshot) {
+            setImage(screenshot.split('data:image/jpeg;base64,')[1])
+            console.log('ss', screenshot.split('data:image/jpeg;base64,')[1])
+            handleOk()
+        }
+    }
 
     const validateFirstName = (value: string) => {
         if (/^[A-Za-z]{2,128}$/.test(value)) {
@@ -198,6 +246,7 @@ function Profile() {
                     )
                     setUserRole(selectedUser[8] ? selectedUser[8] : 'TBA')
                     setStatus(selectedUser[11] ? selectedUser[11] : 'TBA')
+                    setImage(selectedUser[13] ? selectedUser[13] : 'TBA')
                     setDep(departmentNameCurr ? departmentNameCurr : 'TBA')
                     setSite(departmentSiteCurr ? departmentSiteCurr : 'TBA')
                     console.log('-----0---------0--------0----------0')
@@ -427,6 +476,7 @@ function Profile() {
                 )
                 setUserRole(selectedUser[8] ? selectedUser[8] : 'TBA')
                 setStatus(selectedUser[11] ? selectedUser[11] : 'TBA')
+                setImage(selectedUser[13] ? selectedUser[13] : 'TBA')
                 setDep(departmentNameCurr ? departmentNameCurr : 'TBA')
                 setSite(departmentSiteCurr ? departmentSiteCurr : 'TBA')
                 console.log('-----0---------0--------0----------0')
@@ -475,6 +525,7 @@ function Profile() {
                 stringToDate(birthdate),
                 status,
                 parseInt(selectedDepartments.split('_')[1]),
+                `data:image/jpeg;base64, ${image}`,
                 true
             )
                 .then((result: any) => {
@@ -543,6 +594,10 @@ function Profile() {
 
     function handleBirthdateChange(d: any) {
         setBirthdate(d)
+    }
+
+    function handleImageChange(d: any) {
+        setImage(null)
     }
 
     useEffect(() => {
@@ -691,7 +746,32 @@ function Profile() {
                     </div>
                     <div className='row'>
                         <div className='col col-3' style={{ marginRight: 26 }}>
-                            <ProfilePicture id={selectedUser[0]} />
+                            <div
+                                id='profile-picture-component'
+                                onMouseEnter={() => {
+                                    setEditProfilePic(true)
+                                }}
+                                onMouseLeave={() => {
+                                    setEditProfilePic(false)
+                                }}
+                                onClick={showModal}>
+                                <EditOutlined
+                                    id='edit-profile-pic'
+                                    style={
+                                        editProfilePic
+                                            ? {}
+                                            : { display: 'none' }
+                                    }
+                                />
+                                <img
+                                    id='user-picture'
+                                    src={`data:image/jpeg;base64, ${image}`}
+                                    alt='User image'
+                                />
+                                <div id='pp-bottom'>
+                                    <p>ID: {selectedUser[0]}</p>
+                                </div>
+                            </div>
                         </div>
                         <div className='col col-8'>
                             <div
@@ -1097,6 +1177,54 @@ function Profile() {
                 </div>
             </div>
             <Footer />
+            <Modal
+                destroyOnClose
+                title='Basic Modal'
+                open={open}
+                onOk={handleOk}
+                onCancel={handleCancelModal}
+                width={1000}
+                footer={[
+                    <div key={0} className='webcam-buttons'>
+                        <button
+                            type='button'
+                            className='btn btn-primary btn-lg float-right custom-button'
+                            onClick={screenshot ? retake : capture}>
+                            {screenshot ? 'Retake' : 'Capture'}
+                        </button>
+                        <button
+                            disabled={screenshot ? false : true}
+                            type='button'
+                            className='btn btn-primary btn-lg float-right custom-button'
+                            onClick={handleSaveImage}>
+                            Save
+                        </button>
+                        <button
+                            type='button'
+                            className='btn btn-primary btn-lg float-right custom-button'
+                            onClick={handleCancelModal}>
+                            Cancel
+                        </button>
+                    </div>,
+                ]}>
+                <div id='webcam-container'>
+                    {screenshot ? (
+                        <div>
+                            <img src={screenshot} alt='Captured' />
+                        </div>
+                    ) : (
+                        <Webcam
+                            ref={webcamRef}
+                            audio={false}
+                            height={480}
+                            width={638.66}
+                            mirrored
+                            screenshotQuality={1}
+                            screenshotFormat='image/jpeg'
+                        />
+                    )}
+                </div>
+            </Modal>
         </div>
     )
 }

@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-export const getAllUsers = (uid = '') => {
+export const getAllUsers = () => {
     return new Promise((resolve, reject) => {
         axios
             .get('http://127.0.0.1:5000/api/get-all-users', {
@@ -11,7 +11,7 @@ export const getAllUsers = (uid = '') => {
                 resolve(users)
             })
             .catch((error) => {
-                resolve(null)
+                reject(null)
             })
     })
 }

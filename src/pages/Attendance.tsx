@@ -72,6 +72,7 @@ function Attendance() {
                         const attendanceDate = dayjs(a[2])
                         return (
                             (typeof dateRange !== 'undefined' &&
+                                dateRange != null &&
                                 dateRange.length === 0) ||
                             (attendanceDate.isAfter(dayjs(dateRange[0])) &&
                                 attendanceDate.isBefore(dayjs(dateRange[1])))
@@ -99,11 +100,13 @@ function Attendance() {
 
         selectedRowKeys.forEach((key) => {
             const selectedRow = data[key]
-            newDownloadData.ID.push(selectedRow.uid)
-            newDownloadData.FullName.push(selectedRow.fullname)
-            newDownloadData.Location.push(selectedRow.location)
-            newDownloadData.Date.push(selectedRow.date)
-            newDownloadData.Time.push(selectedRow.time)
+            if (selectedRow) {
+                newDownloadData.ID.push(selectedRow.uid)
+                newDownloadData.FullName.push(selectedRow.fullname)
+                newDownloadData.Location.push(selectedRow.location)
+                newDownloadData.Date.push(selectedRow.date)
+                newDownloadData.Time.push(selectedRow.time)
+            }
         })
 
         setDownloadData(newDownloadData)
@@ -112,6 +115,19 @@ function Attendance() {
     useEffect(() => {
         console.log('newdates: ', dateRange)
     }, [dateRange])
+
+    useEffect(() => {
+        if (data && data.length == 0) {
+            setSelectedRowKeys([])
+            setDownloadData({
+                ID: [] as number[],
+                FullName: [] as string[],
+                Location: [] as string[],
+                Date: [] as string[],
+                Time: [] as string[],
+            })
+        }
+    }, [data])
 
     useEffect(() => {
         console.log('blobloblobloblo', currUser)
@@ -418,6 +434,9 @@ function Attendance() {
                             />
                         </div>
                         <button
+                            disabled={
+                                downloadData.ID && downloadData.ID.length == 0
+                            }
                             className='btn btn-primary btn-lg float-right custom-button'
                             style={{
                                 fontSize: 15,

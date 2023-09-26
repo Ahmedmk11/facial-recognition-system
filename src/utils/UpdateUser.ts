@@ -14,6 +14,7 @@ export function updateUser(
     newBirthdate: string, // Assuming it's a string in ISO format, e.g., 'YYYY-MM-DD'
     newEmploymentStatus: string,
     newDepartmentId: number,
+    newImage: any,
     debugMode: boolean
 ): Promise<string> {
     const apiUrl = 'http://127.0.0.1:5000/api/update-user'
@@ -33,6 +34,7 @@ export function updateUser(
         newBirthdate,
         newEmploymentStatus,
         newDepartmentId,
+        newImage,
         debugMode,
     }
     return axios
