@@ -1,6 +1,7 @@
+import { message } from 'antd'
 import axios from 'axios'
 
-export const captureFramesAndSend = () => {
+export const captureFramesAndSend = (un: string) => {
     let intervalId = null as any
 
     const videoElement = document.getElementById(
@@ -16,12 +17,24 @@ export const captureFramesAndSend = () => {
         context.drawImage(videoElement, 0, 0, canvas.width, canvas.height)
         const frameData = canvas.toDataURL('image/jpeg', 1.0)
         axios
-            .post('http://127.0.0.1:5000/api/facial-recognition', { frameData })
+            .post(
+                'http://127.0.0.1:5000/api/facial-recognition',
+                {
+                    un,
+                    frameData,
+                },
+                {
+                    withCredentials: true,
+                }
+            )
             .then((response) => {
-                console.log(response.data)
+                message.success('Login successful')
+                setTimeout(() => {
+                    window.location.href = '/home'
+                }, 1000)
             })
             .catch((error) => {
-                console.error(error)
+                message.error('Login failed')
             })
     }
 

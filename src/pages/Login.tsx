@@ -11,8 +11,9 @@ const { Item } = Form
 function Login() {
     const [form] = Form.useForm()
     const webcamRef = useRef(null)
-    const navigate = useNavigate()
     const [webcamReady, setWebcamReady] = useState(false)
+    const [isWebcamVisible, setIsWebcamVisible] = useState(false)
+    const [un, setUn] = useState('')
 
     useEffect(() => {
         let cleanup: any
@@ -20,7 +21,7 @@ function Login() {
         if (webcamReady && location.pathname === '/login') {
             const startCapture = () => {
                 console.log('hi')
-                cleanup = captureFramesAndSend()
+                cleanup = captureFramesAndSend(un)
             }
             startCapture()
         }
@@ -35,6 +36,7 @@ function Login() {
 
     const onFinish = async (values: any) => {
         try {
+            setUn(values.username)
             const response = await axios.post(
                 'http://127.0.0.1:5000/login',
                 values,
@@ -45,13 +47,8 @@ function Login() {
             console.log('Server response:', response.data)
 
             if (response.status === 200) {
-                message.success('Login successful')
                 form.resetFields()
-                setTimeout(() => {
-                    navigate('/home')
-                }, 1000)
-            } else {
-                message.error('Login failed')
+                setIsWebcamVisible(true)
             }
         } catch (error) {
             console.error('Error:', error)
@@ -114,19 +111,21 @@ function Login() {
                     </Item>
                 </Form>
             </div>
-            <Webcam
-                id='videoElement'
-                ref={webcamRef}
-                audio={false}
-                height={480}
-                width={638.66}
-                mirrored
-                screenshotQuality={1}
-                screenshotFormat='image/jpeg'
-                onUserMedia={() => {
-                    setWebcamReady(true)
-                }}
-            />
+            {isWebcamVisible && (
+                <Webcam
+                    id='videoElement'
+                    ref={webcamRef}
+                    audio={false}
+                    height={480}
+                    width={638.66}
+                    mirrored
+                    screenshotQuality={1}
+                    screenshotFormat='image/jpeg'
+                    onUserMedia={() => {
+                        setWebcamReady(true)
+                    }}
+                />
+            )}
             <Footer />
         </div>
     )

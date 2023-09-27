@@ -288,8 +288,15 @@ BEGIN
     DROP TEMPORARY TABLE IF EXISTS temp_user_ids;
 END;
 
-CALL GetUserAttendance('1,2')
-DROP PROCEDURE GetUserAttendance
+DROP PROCEDURE GetUserPicture
+
+CREATE PROCEDURE GetUserPicture(IN un VARCHAR(64))
+BEGIN
+    SELECT user_picture FROM User WHERE username = un;
+END;
+
+CALL GetUserPicture('ahmedmk1133');
+
 
 -- Testing
 
@@ -358,7 +365,8 @@ CALL InsertAttendance('2023-09-12', 'ahmedmk11', @out)
 CALL GetUsernameCount('ahmedmk11');
 
 UPDATE User
-SET user_picture = 'picture';
+SET role = 'super'
+WHERE username = 'ahmedmk11a';
 
 ALTER TABLE Department CHANGE active dep_status VARCHAR(1);
 

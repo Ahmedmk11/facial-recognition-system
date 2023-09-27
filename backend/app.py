@@ -2,8 +2,6 @@
 # Imports & Initialization
 # ---------------------------------------
 
-import asyncio
-import base64
 from datetime import datetime
 import json
 import os
@@ -15,6 +13,11 @@ import mysql.connector
 from openpyxl import Workbook
 from openpyxl.styles import Alignment
 import pandas as pd
+import base64
+from facial_recognition.count_faces import count_faces
+from facial_recognition.find_matches import find_matches
+import io
+from PIL import Image
 
 app = Flask(__name__, static_folder='../dist')
 CORS(app, origins="http://127.0.0.1:5173", supports_credentials=True)
@@ -22,6 +25,39 @@ CORS(app, origins="http://127.0.0.1:5173", supports_credentials=True)
 # ---------------------------------------
 # Database
 # ---------------------------------------
+
+def resize_image(base64_string):
+    # Remove the 'data:image/jpeg;base64,' part from the base64 string
+    base64_string = base64_string.split(',')[1]
+
+    # Decode the base64 string to bytes
+    image_data = base64.b64decode(base64_string)
+
+    # Open the image using Pillow
+    image = Image.open(io.BytesIO(image_data))
+
+    # Resize the image to 150x150 pixels while maintaining its aspect ratio
+    new_size = (150, 150)
+    resized_image = Image.new("RGB", new_size)
+    img_width, img_height = image.size
+    ratio = min(new_size[0] / img_width, new_size[1] / img_height)
+    new_width = int(img_width * ratio)
+    new_height = int(img_height * ratio)
+    resized_image.paste(image.resize((new_width, new_height), Image.ANTIALIAS), ((new_size[0] - new_width) // 2, (new_size[1] - new_height) // 2))
+
+    # Convert the resized image back to bytes
+    buffer = io.BytesIO()
+    resized_image.save(buffer, format="JPEG")
+    resized_image_data = buffer.getvalue()
+
+    # Encode the resized image as base64 and add the URI part back
+    resized_base64 = "data:image/jpeg;base64," + base64.b64encode(resized_image_data).decode("utf-8")
+
+    return resized_base64
+
+
+# Usage:
+# resized_base64_string = resize_image(original_base
 
 def base64_to_blob(base64_data):
     parts = base64_data.split(',')
@@ -62,16 +98,12 @@ def call_procedure(procedure_name: str, *params: str):
     if result_sets and result_sets[0] and result_sets[0][0] == ('OK',):
         return 'OK'
     
-    for result_set in result_sets:
-        print(result_set)
-
     return result_sets
 
 def update_user_in_db(userId, newFirstname, newLastname, newEmail, newUsername, newJobtitle, newStreetAddress,
                       newLocation, newPhoneNumber, newRole, newBirthdate, newEmploymentStatus, newDepartmentId, newImage, debugMode):
     try:
         newImageBlob = base64_to_blob(newImage)
-        print('newImageBlob', newImageBlob)
         conn = create_db_connection()
         cursor = conn.cursor()
         cursor.callproc("UpdateUser", (userId, newFirstname, newLastname, newEmail, newUsername, newJobtitle,
@@ -128,15 +160,14 @@ def call_insert_procedure(
         cursor.close()
         connection.close()
 
-
 # ---------------------------------------
 # Session
 # ---------------------------------------
 
 app.config['SESSION_TYPE'] = 'cookie'
-app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_USE_SIGNER'] = True
-app.config['SESSION_KEY_PREFIX'] = 'xfrs_'
+app.config['SESSION_KEY_PREFIX'] = 'xceed_'
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 app.config['SESSION_COOKIE_SECURE'] = True
 
@@ -151,12 +182,6 @@ if debug_mode and debug_mode.lower() == 'true':
 # POST requests
 # ---------------------------------------
 
-@app.route('/api/facial-recognition', methods=['POST'])
-def get_webcam_frames():
-    frame_data = request.json.get('frameData')
-    print("Received frame data:", frame_data)
-    return "Frame received and processed successfully"
-
 @app.route('/register', methods=['POST'])
 def register():
     if request.is_json:
@@ -169,7 +194,7 @@ def register():
         location = data.get('location')
         phone_number = data.get('phone_number')
         screenshot = data.get('screenshot')
-
+        screenshot = resize_image(screenshot)
         screenshotBlob = base64_to_blob(screenshot)
 
         date_format = '%Y-%m-%dT%H:%M:%S.%fZ'
@@ -184,7 +209,6 @@ def register():
         params = (firstname, lastname, email, username, street_address, location, phone_number, birthdate, screenshotBlob)
         call_insert_procedure(procedure_name, *params)
         res = call_procedure('GetIDByUserName', username)
-        print('renjfekjnefvnjk', res[0][0][0])
         inserted_id = res[0][0][0]
 
         if inserted_id != -1:
@@ -193,9 +217,8 @@ def register():
                 'username': username,
                 'email': email,
                 'firstname': firstname,
-                'lastname': lastname
+                'lastname': lastname,
             }
-            print(f"Data inserted successfully. Inserted ID: {session}")
             response_data = {'message': 'Registration successful'}
             return jsonify(response_data), 200
         else:
@@ -206,6 +229,44 @@ def register():
         error_response = {'error': 'Invalid request format'}
         return jsonify(error_response), 400
 
+@app.route('/api/facial-recognition', methods=['POST'])
+def get_webcam_frames():
+    frame_data = request.json.get('frameData')
+    un = request.json.get('un')
+
+    data = call_procedure('GetUserPicture', un)
+    bin_string = data[0][0][0]
+    known_image_base64 = [base64.b64encode(bin_string).decode('utf-8')]
+
+    if frame_data:
+        print('inside framedata')
+        frame_data = resize_image(frame_data)
+        test_image_base64 = frame_data.replace('data:image/jpeg;base64,', '')
+        faces_num = count_faces(test_image_base64)
+        if faces_num > 1:
+            print('inside more than 1 face', faces_num)
+            return jsonify({'message': faces_num}), 403
+        elif faces_num == 1:
+            isMatch = find_matches(test_image_base64, known_image_base64)
+            print(isMatch)
+            if isMatch:
+                print('i am here')
+                queryResult = call_procedure('GetAllUsersByUsername', un)
+                session['user'] = {
+                    'user_id' : queryResult[0][0][0],
+                    'username' : queryResult[0][0][4],
+                    'email' : queryResult[0][0][3],
+                    'firstname' : queryResult[0][0][1],
+                    'lastname' : queryResult[0][0][2],
+                }
+                print('session', session)
+                uid = queryResult[0][0][0]
+                insertResult = add_attendance(uid)
+                if (insertResult != 'OK'):
+                    return jsonify({'message': 'Login Failed, Cannot insert attendance'})
+                else:
+                    return jsonify({'message': 'Login Successful'}), 200
+
 @app.route('/login', methods=['POST'])
 def login():
     if request.is_json:
@@ -214,37 +275,17 @@ def login():
     if not (username):
         error_response = {'error': 'Invalid or missing data'}
         return jsonify(error_response), 400
-    print ('jello')
     queryResult = call_procedure('GetAllUsersByUsername', username)
 
     if not queryResult:
         return jsonify({'message': f'We couldn\'t find an account with username: {username}'}), 404
-
-    # Store user data in the session
-    print('q', queryResult)
-    session['user'] = {
-        'user_id': queryResult[0][0][0],
-        'username': queryResult[0][0][4],
-        'email': queryResult[0][0][3],
-        'firstname': queryResult[0][0][1],
-        'lastname': queryResult[0][0][2]
-    }
-
-    uid = queryResult[0][0][0]
-    insertResult = add_attendance(uid)
-    print('insertResult', insertResult)
-    if (insertResult == 'OK'):
-        print(session.get('user'))
-        return jsonify({'message': 'Login successful'})
     else:
-        return jsonify({'message': 'Login Failed, Cannot insert attendance'})
+        return jsonify({'message': 'Username Found'}), 200
 
 @app.route('/clear-session-user', methods=['POST'])
 def clear_session_user():
-    print(session)
     try:
         session.clear()
-        print(session)
         return jsonify({'message': 'Session cleared successfully'}), 200
     except:
         return jsonify({'message': 'Error clearing session'}), 500
@@ -267,8 +308,6 @@ def update_user():
     newDepartmentId = data.get('newDepartmentId')
     newImage = data.get('newImage')
     debugMode = data.get('debugMode')
-
-    print('data', data)
 
     result = update_user_in_db(userId, newFirstname, newLastname, newEmail, newUsername, newJobtitle, newStreetAddress,
                                newLocation, newPhoneNumber, newRole, newBirthdate, newEmploymentStatus, newDepartmentId, newImage, debugMode)
@@ -334,7 +373,6 @@ def check_username_exists():
         return jsonify({'username_exists': False})
 
     count = call_procedure('GetUsernameCount' ,username)
-    print('ccc', count)
     if count != 0:
         return jsonify({'username_exists': True})
     
@@ -347,7 +385,6 @@ def check_role():
         return jsonify({'error': 'No user found'})
     
     role = call_procedure('GetUserRole' ,uid)
-    print('role', role[0][0][0])
     if not role:
         return jsonify({'error': 'No role found'})
     
@@ -361,21 +398,17 @@ def check_name_site():
     if not uid:
         return jsonify({'error': 'No user found'})
     
-    print('rrrrrr', uid)
     [[nameAndSite]] = call_procedure('GetUserDepartmentAndSite' ,uid)
-    print('nameAndSite', nameAndSite)
     return jsonify({'nameAndSite': nameAndSite})
 
 @app.route('/api/get-all-users', methods=['GET'])
 def get_users():
     [users] = call_procedure('GetAllUsers')
-    print(users)
     return jsonify({'users': users})
 
 @app.route('/api/get-all-departments', methods=['GET'])
 def get_departments():
     [departments] = call_procedure('GetAllDepartments')
-    print(departments)
     return jsonify({'departments': departments})
 
 @app.route('/api/get-user-attendance', methods=['GET'])
@@ -385,7 +418,6 @@ def get_user_attendance():
         return jsonify({'error': 'No user found'})
     
     [attendance] = call_procedure('GetUserAttendance', uid)
-    print(attendance)
     return jsonify({'attendance': attendance})
 
 @app.route('/api/get-user-id', methods=['GET'])
@@ -403,12 +435,6 @@ def get_user_by_id():
     base64_string = base64.b64encode(user_list[13]).decode('utf-8')
     user_list[13] = base64_string
     user = tuple(user_list)
-    print(
-        f'''
-the uid: {uid}
-the user: {user}
-'''
-    )
     return jsonify({'user': user})
 
 @app.route('/api/get-dep-id', methods=['GET'])
