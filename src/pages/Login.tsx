@@ -1,14 +1,36 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Form, Input, Button, DatePicker, message } from 'antd'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import Footer from '../components/Footer'
 import NavBar from '../components/NavBar'
+import Webcam from 'react-webcam'
+import { captureFramesAndSend } from '../utils/SendVideoFrames'
 const { Item } = Form
 
 function Login() {
     const [form] = Form.useForm()
+    const webcamRef = useRef(null)
     const navigate = useNavigate()
+    const [webcamReady, setWebcamReady] = useState(false)
+
+    useEffect(() => {
+        let cleanup: any
+
+        if (webcamReady) {
+            const startCapture = () => {
+                console.log('hi')
+                cleanup = captureFramesAndSend()
+            }
+            startCapture()
+        }
+
+        return () => {
+            if (cleanup) {
+                cleanup.stop()
+            }
+        }
+    }, [webcamReady])
 
     const onFinish = async (values: any) => {
         try {
@@ -91,6 +113,19 @@ function Login() {
                     </Item>
                 </Form>
             </div>
+            <Webcam
+                id='videoElement'
+                ref={webcamRef}
+                audio={false}
+                height={480}
+                width={638.66}
+                mirrored
+                screenshotQuality={1}
+                screenshotFormat='image/jpeg'
+                onUserMedia={() => {
+                    setWebcamReady(true)
+                }}
+            />
             <Footer />
         </div>
     )

@@ -151,6 +151,12 @@ if debug_mode and debug_mode.lower() == 'true':
 # POST requests
 # ---------------------------------------
 
+@app.route('/api/facial-recognition', methods=['POST'])
+def get_webcam_frames():
+    frame_data = request.json.get('frameData')
+    print("Received frame data:", frame_data)
+    return "Frame received and processed successfully"
+
 @app.route('/register', methods=['POST'])
 def register():
     if request.is_json:
