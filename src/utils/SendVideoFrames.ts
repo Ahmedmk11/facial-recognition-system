@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 export const captureFramesAndSend = () => {
-    let animationFrameId = null as any
+    let intervalId = null as any
 
     const videoElement = document.getElementById(
         'videoElement'
@@ -12,7 +12,7 @@ export const captureFramesAndSend = () => {
     canvas.width = 638.66
     canvas.height = 480
 
-    const captureFrame = () => {
+    const captureAndSendFrame = () => {
         context.drawImage(videoElement, 0, 0, canvas.width, canvas.height)
         const frameData = canvas.toDataURL('image/jpeg', 1.0)
         axios
@@ -23,15 +23,16 @@ export const captureFramesAndSend = () => {
             .catch((error) => {
                 console.error(error)
             })
-
-        animationFrameId = requestAnimationFrame(captureFrame)
     }
 
-    captureFrame()
+    const startCapture = () => {
+        intervalId = setInterval(captureAndSendFrame, 1000)
+    }
 
     const stopCapture = () => {
-        cancelAnimationFrame(animationFrameId)
+        clearInterval(intervalId)
     }
+    startCapture()
 
     return {
         stop: stopCapture,

@@ -17,7 +17,7 @@ function Login() {
     useEffect(() => {
         let cleanup: any
 
-        if (webcamReady) {
+        if (webcamReady && location.pathname === '/login') {
             const startCapture = () => {
                 console.log('hi')
                 cleanup = captureFramesAndSend()
@@ -27,10 +27,11 @@ function Login() {
 
         return () => {
             if (cleanup) {
+                console.log('stop')
                 cleanup.stop()
             }
         }
-    }, [webcamReady])
+    }, [webcamReady, location])
 
     const onFinish = async (values: any) => {
         try {
