@@ -1,4 +1,4 @@
-import { DatePicker, Input, Modal, message } from 'antd'
+import { DatePicker, Input, Modal, Skeleton, message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import NavBar from '../components/NavBar'
@@ -37,6 +37,7 @@ function Profile() {
     const [filteredOptions, setFilteredOptions] = useState<any>([])
     const [render, setRender] = useState<boolean>(true)
     const [editProfilePic, setEditProfilePic] = useState<boolean>(false)
+    const [isLoading, setIsLoading] = useState<boolean>(true)
 
     const [role, setRole] = useState<any>(null)
     const [isAllowed, setIsAllowed] = useState<boolean>(false)
@@ -253,6 +254,7 @@ function Profile() {
                     setDep(departmentNameCurr ? departmentNameCurr : 'TBA')
                     setSite(departmentSiteCurr ? departmentSiteCurr : 'TBA')
                     console.log('-----0---------0--------0----------0')
+                    setIsLoading(false)
                 })
                 .catch((error) => {
                     console.error(error)
@@ -735,6 +737,7 @@ function Profile() {
                             </div>
                         ) : (
                             <button
+                                disabled={isLoading}
                                 type='button'
                                 className='btn btn-outline-secondary float-right'
                                 style={{ width: 90 }}
@@ -748,35 +751,48 @@ function Profile() {
                     </div>
                     <div className='row'>
                         <div className='col col-3' style={{ marginRight: 26 }}>
-                            <div
-                                id='profile-picture-component'
-                                onMouseEnter={() => {
-                                    setEditProfilePic(true)
-                                }}
-                                onMouseLeave={() => {
-                                    setEditProfilePic(false)
-                                }}
-                                onClick={showModal}>
-                                <EditOutlined
-                                    id='edit-profile-pic'
-                                    style={
-                                        editProfilePic
-                                            ? {}
-                                            : { display: 'none' }
-                                    }
+                            {isLoading ? (
+                                <Skeleton.Avatar
+                                    active
+                                    shape='square'
+                                    style={{
+                                        width: 260,
+                                        height: 260,
+                                        borderRadius: 6,
+                                    }}
                                 />
-                                <img
-                                    id='user-picture'
-                                    src={`data:image/jpeg;base64, ${image}`}
-                                    alt='User image'
-                                    style={{ objectFit: 'cover' }} // Maintain aspect ratio
-                                    width={260}
-                                    height={260}
-                                />
-                                <div id='pp-bottom'>
-                                    <p>ID: {selectedUser[0]}</p>
+                            ) : (
+                                <div
+                                    id='profile-picture-component'
+                                    onMouseEnter={() => {
+                                        setEditProfilePic(true)
+                                    }}
+                                    onMouseLeave={() => {
+                                        setEditProfilePic(false)
+                                    }}
+                                    onClick={showModal}>
+                                    <EditOutlined
+                                        id='edit-profile-pic'
+                                        style={
+                                            editProfilePic
+                                                ? {}
+                                                : { display: 'none' }
+                                        }
+                                    />
+
+                                    <img
+                                        id='user-picture'
+                                        src={`data:image/jpeg;base64, ${image}`}
+                                        alt='User image'
+                                        style={{ objectFit: 'cover' }} // Maintain aspect ratio
+                                        width={260}
+                                        height={260}
+                                    />
+                                    <div id='pp-bottom'>
+                                        <p>ID: {selectedUser[0]}</p>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                         <div className='col col-8'>
                             <div
@@ -789,13 +805,17 @@ function Profile() {
                                 {isEdit ? (
                                     <div className='row'>
                                         <div className='col-5'>
-                                            <Input
-                                                type='text'
-                                                onChange={(e) => {
-                                                    handleFirstNameChange(e)
-                                                }}
-                                                value={firstName}
-                                            />
+                                            {isLoading ? (
+                                                <Skeleton.Input active />
+                                            ) : (
+                                                <Input
+                                                    type='text'
+                                                    onChange={(e) => {
+                                                        handleFirstNameChange(e)
+                                                    }}
+                                                    value={firstName}
+                                                />
+                                            )}
                                             {firstNameError && (
                                                 <div className='error-msg'>
                                                     {firstNameError}
@@ -817,6 +837,8 @@ function Profile() {
                                             )}
                                         </div>
                                     </div>
+                                ) : isLoading ? (
+                                    <Skeleton.Input active />
                                 ) : (
                                     <h1>
                                         {firstName} {lastName}
@@ -837,6 +859,8 @@ function Profile() {
                                             </div>
                                         )}
                                     </div>
+                                ) : isLoading ? (
+                                    <Skeleton.Input active />
                                 ) : (
                                     <p id='username'>@{userName}</p>
                                 )}
@@ -866,6 +890,8 @@ function Profile() {
                                                     </div>
                                                 )}
                                             </>
+                                        ) : isLoading ? (
+                                            <Skeleton.Input active />
                                         ) : (
                                             <p className='field-content'>
                                                 {email}
@@ -893,6 +919,8 @@ function Profile() {
                                                     </div>
                                                 )}
                                             </>
+                                        ) : isLoading ? (
+                                            <Skeleton.Input active />
                                         ) : (
                                             <p className='field-content'>
                                                 {phone}
@@ -906,13 +934,6 @@ function Profile() {
                                     <div className='field-component'>
                                         <p className='field-label'>Birthdate</p>
                                         {isEdit ? (
-                                            // <Input
-                                            //     type='text'
-                                            //     onChange={(e) => {
-                                            //         handleBirthdateChange(e)
-                                            //     }}
-                                            //     value={birthdate}
-                                            // />
                                             <DatePicker
                                                 value={stringToDayJs(birthdate)}
                                                 onChange={(dayjs: any) => {
@@ -921,6 +942,8 @@ function Profile() {
                                                     )
                                                 }}
                                             />
+                                        ) : isLoading ? (
+                                            <Skeleton.Input active />
                                         ) : (
                                             <p className='field-content'>
                                                 {birthdate}
@@ -946,6 +969,8 @@ function Profile() {
                                                     </div>
                                                 )}
                                             </>
+                                        ) : isLoading ? (
+                                            <Skeleton.Input active />
                                         ) : (
                                             <p className='field-content'>
                                                 {location}
@@ -973,6 +998,8 @@ function Profile() {
                                                     </div>
                                                 )}
                                             </>
+                                        ) : isLoading ? (
+                                            <Skeleton.Input active />
                                         ) : (
                                             <p className='field-content'>
                                                 {address}
@@ -1010,6 +1037,8 @@ function Profile() {
                                                     </div>
                                                 )}
                                             </>
+                                        ) : isLoading ? (
+                                            <Skeleton.Input active />
                                         ) : (
                                             <p className='field-content'>
                                                 {jobTitle}
@@ -1022,9 +1051,13 @@ function Profile() {
                                         <p className='field-label'>
                                             Date Joined
                                         </p>
-                                        <p className='field-content'>
-                                            {dateJoined}
-                                        </p>
+                                        {isLoading ? (
+                                            <Skeleton.Input active />
+                                        ) : (
+                                            <p className='field-content'>
+                                                {dateJoined}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -1058,6 +1091,8 @@ function Profile() {
                                                     Super Admin
                                                 </Option>
                                             </Select>
+                                        ) : isLoading ? (
+                                            <Skeleton.Input active />
                                         ) : (
                                             <p className='field-content'>
                                                 {userRole == 'super'
@@ -1102,6 +1137,8 @@ function Profile() {
                                                     Inactive
                                                 </Option>
                                             </Select>
+                                        ) : isLoading ? (
+                                            <Skeleton.Input active />
                                         ) : (
                                             <p className='field-content'>
                                                 {status == '1'
@@ -1142,6 +1179,8 @@ function Profile() {
                                                 }}>
                                                 {filteredOptionsDepartment}
                                             </Select>
+                                        ) : isLoading ? (
+                                            <Skeleton.Input active />
                                         ) : (
                                             <p className='field-content'>
                                                 {dep}
@@ -1156,7 +1195,11 @@ function Profile() {
                                                 Department Site
                                             </p>
                                             <p className='field-content'>
-                                                {site}
+                                                {isLoading ? (
+                                                    <Skeleton.Input active />
+                                                ) : (
+                                                    site
+                                                )}
                                             </p>
                                         </div>
                                     )}
@@ -1166,6 +1209,7 @@ function Profile() {
                     </div>
                     <div className='row justify-content-end'>
                         <button
+                            disabled={isLoading}
                             type='button'
                             style={{ width: 300 }}
                             className='btn btn-primary btn-lg float-right custom-button'
@@ -1182,33 +1226,41 @@ function Profile() {
                 </div>
                 {role == 'employee' ? null : (
                     <div id='profile-page-content-left'>
-                        <Select
-                            disabled={isEdit}
-                            onChange={handleOptionSelect}
-                            value={selectedOptions}
-                            filterOption={(inputValue, option) => {
-                                let optionLabel = option?.props?.children || ''
-                                if (Array.isArray(optionLabel)) {
-                                    optionLabel = optionLabel.join('')
-                                }
+                        {isLoading ? (
+                            <Skeleton.Input active />
+                        ) : (
+                            <Select
+                                disabled={isEdit && isLoading}
+                                onChange={handleOptionSelect}
+                                value={selectedOptions}
+                                filterOption={(inputValue, option) => {
+                                    let optionLabel =
+                                        option?.props?.children || ''
+                                    if (Array.isArray(optionLabel)) {
+                                        optionLabel = optionLabel.join('')
+                                    }
 
-                                const optgroupLabel = option?.props?.label || ''
+                                    const optgroupLabel =
+                                        option?.props?.label || ''
 
-                                return (
-                                    (typeof optionLabel === 'string' &&
-                                        optionLabel
-                                            .toLowerCase()
-                                            .includes(
-                                                inputValue.toLowerCase()
-                                            )) ||
-                                    (typeof optgroupLabel === 'string' &&
-                                        optgroupLabel
-                                            .toLowerCase()
-                                            .includes(inputValue.toLowerCase()))
-                                )
-                            }}>
-                            {filteredOptions}
-                        </Select>
+                                    return (
+                                        (typeof optionLabel === 'string' &&
+                                            optionLabel
+                                                .toLowerCase()
+                                                .includes(
+                                                    inputValue.toLowerCase()
+                                                )) ||
+                                        (typeof optgroupLabel === 'string' &&
+                                            optgroupLabel
+                                                .toLowerCase()
+                                                .includes(
+                                                    inputValue.toLowerCase()
+                                                ))
+                                    )
+                                }}>
+                                {filteredOptions}
+                            </Select>
+                        )}
                     </div>
                 )}
             </div>

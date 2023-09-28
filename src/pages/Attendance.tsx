@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, DatePicker, Select } from 'antd'
+import { Button, DatePicker, Select, Skeleton } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
 import NavBar from '../components/NavBar'
 import Footer from '../components/Footer'
@@ -16,17 +16,17 @@ import dayjs from 'dayjs'
 import { downloadExcel } from '../utils/DownloadReport'
 
 interface DataType {
-    key: React.Key
-    uid: number
-    fullname: string
-    location: string
-    date: string
-    time: string
+    key: any
+    uid: any
+    fullname: any
+    location: any
+    date: any
+    time: any
 }
 
 function Attendance() {
-    const navigate = useNavigate()
     const { state } = useLocation()
+    const [isLoading, setIsLoading] = useState<boolean>(true)
 
     const { Option, OptGroup } = Select
     const { RangePicker } = DatePicker
@@ -39,6 +39,8 @@ function Attendance() {
     const [users, setUsers] = useState<any>([])
     const [data, setData] = useState<any>([])
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
+
+    const loadingSkeletonData = Array(2).fill(0)
 
     const [downloadData, setDownloadData] = useState({
         ID: [] as number[],
@@ -79,6 +81,7 @@ function Attendance() {
                         )
                     })
                     setAttendance(filteredAttendance)
+                    setIsLoading(false)
                 })
                 .catch((error) => {
                     console.error(error)
@@ -113,10 +116,6 @@ function Attendance() {
     }, [selectedRowKeys, data])
 
     useEffect(() => {
-        console.log('newdates: ', dateRange)
-    }, [dateRange])
-
-    useEffect(() => {
         if (data && data.length == 0) {
             setSelectedRowKeys([])
             setDownloadData({
@@ -130,7 +129,6 @@ function Attendance() {
     }, [data])
 
     useEffect(() => {
-        console.log('blobloblobloblo', currUser)
         getUserAttendanceResponse(state ? `${state.uid}` : `${currUser[0]}`)
             .then((attendance: any) => {
                 const filteredAttendance = attendance.filter((a: any) => {
@@ -143,15 +141,12 @@ function Attendance() {
                     )
                 })
                 setAttendance(filteredAttendance)
+                setIsLoading(false)
             })
             .catch((error) => {
                 console.error(error)
             })
     }, [currUser])
-
-    useEffect(() => {
-        console.log('atte', attendance)
-    }, [attendance])
 
     const columns: ColumnsType<DataType> = [
         {
@@ -321,12 +316,7 @@ function Attendance() {
         } else {
             setSelectedOptions([`user_${currUser[0]}`])
         }
-        console.log('currrr', currUser)
     }, [currUser])
-
-    useEffect(() => {
-        console.log('downloaddata', downloadData)
-    }, [downloadData])
 
     const filteredOptions = departments
         .filter(
@@ -394,55 +384,85 @@ function Attendance() {
             <NavBar />
             <div id='attendance-content'>
                 <div id='attendance-container'>
-                    <Table
-                        style={{ paddingLeft: 12 }}
-                        rowSelection={rowSelection}
-                        columns={columns}
-                        dataSource={data}
-                        pagination={{
-                            position: ['bottomLeft'],
-                        }}
-                    />
+                    {isLoading ? ( // Check if it's loading
+                        // Render the skeleton rows while loading
+                        <Table
+                            style={{ paddingLeft: 12 }}
+                            columns={columns}
+                            dataSource={loadingSkeletonData.map((_, index) => ({
+                                key: index,
+                                uid: <Skeleton active />,
+                                fullname: <Skeleton active />,
+                                location: <Skeleton active />,
+                                date: <Skeleton active />,
+                                time: <Skeleton active />,
+                            }))}
+                            pagination={false}
+                        />
+                    ) : (
+                        // Render the actual table data when not loading
+                        <Table
+                            style={{ paddingLeft: 12 }}
+                            rowSelection={rowSelection}
+                            columns={columns}
+                            dataSource={data}
+                            pagination={{
+                                position: ['bottomLeft'],
+                            }}
+                        />
+                    )}
                 </div>
                 <div id='attendance-filters'>
                     {role == 'employee' ? null : (
                         <div id='inputs'>
-                            <Select
-                                allowClear
-                                placeholder='Select users'
-                                mode='multiple'
-                                onChange={handleOptionSelect}
-                                value={selectedOptions}
-                                filterOption={(inputValue, option) => {
-                                    let optionLabel =
-                                        option?.props?.children || ''
-                                    if (Array.isArray(optionLabel)) {
-                                        optionLabel = optionLabel.join('')
-                                    }
-                                    const optgroupLabel =
-                                        option?.props?.label || ''
-                                    return (
-                                        (typeof optionLabel === 'string' &&
-                                            optionLabel
-                                                .toLowerCase()
-                                                .includes(
-                                                    inputValue.toLowerCase()
-                                                )) ||
-                                        (typeof optgroupLabel === 'string' &&
-                                            optgroupLabel
-                                                .toLowerCase()
-                                                .includes(
-                                                    inputValue.toLowerCase()
-                                                ))
-                                    )
-                                }}>
-                                {filteredOptions}
-                            </Select>
-                            <RangePicker
-                                showTime
-                                allowClear
-                                onChange={handleDateChange}
-                            />
+                            {isLoading ? (
+                                <Skeleton.Input active />
+                            ) : (
+                                <Select
+                                    allowClear
+                                    placeholder='Select users'
+                                    mode='multiple'
+                                    onChange={handleOptionSelect}
+                                    value={selectedOptions}
+                                    filterOption={(inputValue, option) => {
+                                        let optionLabel =
+                                            option?.props?.children || ''
+                                        if (Array.isArray(optionLabel)) {
+                                            optionLabel = optionLabel.join('')
+                                        }
+                                        const optgroupLabel =
+                                            option?.props?.label || ''
+                                        return (
+                                            (typeof optionLabel === 'string' &&
+                                                optionLabel
+                                                    .toLowerCase()
+                                                    .includes(
+                                                        inputValue.toLowerCase()
+                                                    )) ||
+                                            (typeof optgroupLabel ===
+                                                'string' &&
+                                                optgroupLabel
+                                                    .toLowerCase()
+                                                    .includes(
+                                                        inputValue.toLowerCase()
+                                                    ))
+                                        )
+                                    }}>
+                                    {filteredOptions}
+                                </Select>
+                            )}
+                            {isLoading ? (
+                                <Skeleton.Input
+                                    active
+                                    style={{ marginTop: 26 }}
+                                />
+                            ) : (
+                                <RangePicker
+                                    showTime
+                                    allowClear
+                                    onChange={handleDateChange}
+                                />
+                            )}
                         </div>
                     )}
 
