@@ -10,7 +10,7 @@ export const captureFramesAndSend = (un: string) => {
     console.log(videoElement)
     const canvas = document.createElement('canvas')
     const context = canvas.getContext('2d') as any
-    canvas.width = 638.66
+    canvas.width = 480
     canvas.height = 480
 
     const captureAndSendFrame = () => {
@@ -28,13 +28,50 @@ export const captureFramesAndSend = (un: string) => {
                 }
             )
             .then((response) => {
-                message.success('Login successful')
-                setTimeout(() => {
-                    window.location.href = '/home'
-                }, 1000)
+                if (response.status === 200) {
+                    message.success('Login successful')
+                    stopCapture()
+                    setTimeout(() => {
+                        window.location.href = '/home'
+                    }, 1000)
+                }
             })
             .catch((error) => {
-                message.error('Login failed')
+                if (error.response && error.response.status) {
+                    if (
+                        document.getElementsByClassName('ant-message-notice')
+                            .length === 0
+                    ) {
+                        const statusCode = error.response.status
+
+                        if (statusCode === 403) {
+                            if (error.response.data.message == 0) {
+                                message.error(
+                                    'Please ensure your face is well-centered within the frame for accurate recognition.'
+                                )
+                            } else {
+                                message.error(
+                                    'Please ensure that you are the only person in the frame.'
+                                )
+                            }
+                        } else if (statusCode === 500) {
+                            message.error(
+                                'Login Failed, Cannot insert attendance'
+                            )
+                        } else {
+                            console.log(`Error status code: ${statusCode}`)
+                        }
+                    }
+                } else {
+                    if (
+                        document.getElementsByClassName('ant-message-notice')
+                            .length === 0
+                    ) {
+                        message.error(
+                            `Face not recognized. Is ${un} your correct username?`
+                        )
+                    }
+                }
             })
     }
 

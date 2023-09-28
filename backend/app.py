@@ -36,14 +36,19 @@ def resize_image(base64_string):
     # Open the image using Pillow
     image = Image.open(io.BytesIO(image_data))
 
-    # Resize the image to 150x150 pixels while maintaining its aspect ratio
-    new_size = (150, 150)
-    resized_image = Image.new("RGB", new_size)
-    img_width, img_height = image.size
-    ratio = min(new_size[0] / img_width, new_size[1] / img_height)
-    new_width = int(img_width * ratio)
-    new_height = int(img_height * ratio)
-    resized_image.paste(image.resize((new_width, new_height), Image.ANTIALIAS), ((new_size[0] - new_width) // 2, (new_size[1] - new_height) // 2))
+    # Calculate dimensions for cropping the image to a 1:1 aspect ratio
+    width, height = image.size
+    new_size = min(width, height)
+    left = (width - new_size) / 2
+    top = (height - new_size) / 2
+    right = (width + new_size) / 2
+    bottom = (height + new_size) / 2
+
+    # Crop the image to a 1:1 aspect ratio
+    cropped_image = image.crop((left, top, right, bottom))
+
+    # Resize the cropped image to 150x150 pixels
+    resized_image = cropped_image.resize((150, 150), Image.ANTIALIAS)
 
     # Convert the resized image back to bytes
     buffer = io.BytesIO()
@@ -54,10 +59,6 @@ def resize_image(base64_string):
     resized_base64 = "data:image/jpeg;base64," + base64.b64encode(resized_image_data).decode("utf-8")
 
     return resized_base64
-
-
-# Usage:
-# resized_base64_string = resize_image(original_base
 
 def base64_to_blob(base64_data):
     parts = base64_data.split(',')
@@ -103,7 +104,8 @@ def call_procedure(procedure_name: str, *params: str):
 def update_user_in_db(userId, newFirstname, newLastname, newEmail, newUsername, newJobtitle, newStreetAddress,
                       newLocation, newPhoneNumber, newRole, newBirthdate, newEmploymentStatus, newDepartmentId, newImage, debugMode):
     try:
-        newImageBlob = base64_to_blob(newImage)
+        resized = resize_image(newImage)
+        newImageBlob = base64_to_blob(resized)
         conn = create_db_connection()
         cursor = conn.cursor()
         cursor.callproc("UpdateUser", (userId, newFirstname, newLastname, newEmail, newUsername, newJobtitle,
@@ -239,18 +241,16 @@ def get_webcam_frames():
     known_image_base64 = [base64.b64encode(bin_string).decode('utf-8')]
 
     if frame_data:
-        print('inside framedata')
         frame_data = resize_image(frame_data)
         test_image_base64 = frame_data.replace('data:image/jpeg;base64,', '')
         faces_num = count_faces(test_image_base64)
         if faces_num > 1:
-            print('inside more than 1 face', faces_num)
+            return jsonify({'message': faces_num}), 403
+        elif faces_num == 0:
             return jsonify({'message': faces_num}), 403
         elif faces_num == 1:
             isMatch = find_matches(test_image_base64, known_image_base64)
-            print(isMatch)
             if isMatch:
-                print('i am here')
                 queryResult = call_procedure('GetAllUsersByUsername', un)
                 session['user'] = {
                     'user_id' : queryResult[0][0][0],
@@ -259,11 +259,10 @@ def get_webcam_frames():
                     'firstname' : queryResult[0][0][1],
                     'lastname' : queryResult[0][0][2],
                 }
-                print('session', session)
                 uid = queryResult[0][0][0]
                 insertResult = add_attendance(uid)
                 if (insertResult != 'OK'):
-                    return jsonify({'message': 'Login Failed, Cannot insert attendance'})
+                    return jsonify({'message': 'Login Failed, Cannot insert attendance'}), 500
                 else:
                     return jsonify({'message': 'Login Successful'}), 200
 
@@ -432,8 +431,11 @@ def get_user_by_id():
     [[user]] = call_procedure('GetUserByID', uid)
     user_list = list(user)
     
-    base64_string = base64.b64encode(user_list[13]).decode('utf-8')
-    user_list[13] = base64_string
+    base64_string = 'data:image/jpeg;base64,' + base64.b64encode(user_list[13]).decode('utf-8')
+    resized = resize_image(base64_string)
+    resized = resized.split(',')[1]
+    print(resize_image)
+    user_list[13] = resized
     user = tuple(user_list)
     return jsonify({'user': user})
 

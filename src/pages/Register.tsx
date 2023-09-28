@@ -15,6 +15,7 @@ import {
     SolutionOutlined,
     UserOutlined,
     CameraOutlined,
+    CheckOutlined,
 } from '@ant-design/icons'
 import { Steps } from 'antd'
 import Webcam from 'react-webcam'
@@ -32,7 +33,6 @@ function Register() {
     const capture = React.useCallback(() => {
         const cam = webcamRef.current as any
         const imageSrc = cam.getScreenshot()
-        console.log(imageSrc)
         setScreenshot(imageSrc)
     }, [webcamRef])
 
@@ -91,14 +91,21 @@ function Register() {
                 <div id='webcam-container'>
                     {screenshot ? (
                         <div>
-                            <img src={screenshot} alt='Captured' />
+                            <img
+                                src={screenshot}
+                                alt='Captured'
+                                width={480}
+                                height={480}
+                                style={{ objectFit: 'cover' }} // Maintain aspect ratio
+                            />
                         </div>
                     ) : (
                         <Webcam
+                            className='webcam-video'
                             ref={webcamRef}
                             audio={false}
                             height={480}
-                            width={638.66}
+                            width={480}
                             mirrored
                             screenshotQuality={1}
                             screenshotFormat='image/jpeg'
@@ -344,32 +351,38 @@ function Register() {
     return (
         <div id='register-page'>
             <NavBar />
-            <Steps
-                style={{ width: 550, marginTop: 26 }}
-                current={currentStep - 1} // Ant Design Steps use 0-based indexing
-                items={steps.map((step, index) => ({
-                    title: step.title,
-                    status:
-                        currentStep > index
-                            ? 'finish'
-                            : currentStep === index
-                            ? 'process'
-                            : 'wait',
-                    icon:
-                        currentStep > index ? (
-                            step.title == 'Photo Capture' ? (
-                                <CameraOutlined />
-                            ) : step.title == 'Personal Info' ? (
-                                <UserOutlined />
-                            ) : step.title == 'Done' ? (
-                                <SmileOutlined />
-                            ) : null
-                        ) : currentStep === index ? (
-                            <LoadingOutlined />
-                        ) : null,
-                }))}
-            />
-            {steps[currentStep].content}
+            <div id='register-content-c'>
+                <Steps
+                    style={{ width: 550 }}
+                    current={currentStep - 1} // Ant Design Steps use 0-based indexing
+                    items={steps.map((step, index) => ({
+                        title: step.title,
+                        status:
+                            currentStep > index
+                                ? 'finish'
+                                : currentStep === index
+                                ? 'process'
+                                : 'wait',
+                        icon:
+                            currentStep > index ? (
+                                step.title == 'Photo Capture' ? (
+                                    <CameraOutlined />
+                                ) : step.title == 'Personal Info' ? (
+                                    <UserOutlined />
+                                ) : step.title == 'Done' ? (
+                                    <SmileOutlined />
+                                ) : null
+                            ) : currentStep === index ? (
+                                step.title == 'Done' ? (
+                                    <CheckOutlined />
+                                ) : (
+                                    <LoadingOutlined />
+                                )
+                            ) : null,
+                    }))}
+                />
+                {steps[currentStep].content}
+            </div>
             <Footer />
         </div>
     )

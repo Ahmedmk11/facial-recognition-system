@@ -103,7 +103,6 @@ function Profile() {
     const capture = React.useCallback(() => {
         const cam = webcamRef.current as any
         const imageSrc = cam.getScreenshot()
-        console.log(imageSrc)
         setScreenshot(imageSrc)
     }, [webcamRef])
 
@@ -145,6 +144,7 @@ function Profile() {
                 setUserNameError('')
             } else {
                 try {
+                    setUserNameError('')
                     await checkUserNameInUse({}, value)
                 } catch (error) {
                     setUserNameError('Username is taken')
@@ -163,6 +163,7 @@ function Profile() {
                 setEmailError('')
             } else {
                 try {
+                    setEmailError('')
                     await checkEmailInUse({}, value)
                 } catch (error) {
                     setEmailError('Email is already in use')
@@ -179,6 +180,7 @@ function Profile() {
                 setPhoneError('')
             } else {
                 try {
+                    setPhoneError('')
                     await checkNumberInUse({}, value)
                 } catch (error) {
                     setPhoneError('Phone number is already in use')
@@ -537,9 +539,10 @@ function Profile() {
                 })
 
             setIsEdit(false)
+            message.success('Changes saved successfully', 4)
         } else {
             message.error(
-                ' Please review the highlighted fields and make sure they meet the required criteria before saving.',
+                'Please review the highlighted fields and make sure they meet the required criteria before saving.',
                 4
             )
         }
@@ -678,7 +681,7 @@ function Profile() {
                     const base64Image = e.target?.result as string
                     console.log('Base64-encoded image:', base64Image)
                     if (base64Image) {
-                        setScreenshot(base64Image)
+                        setScreenshot(base64Image) // force 480x480
                     } else {
                         console.error('Invalid base64 image format')
                     }
@@ -766,6 +769,9 @@ function Profile() {
                                     id='user-picture'
                                     src={`data:image/jpeg;base64, ${image}`}
                                     alt='User image'
+                                    style={{ objectFit: 'cover' }} // Maintain aspect ratio
+                                    width={260}
+                                    height={260}
                                 />
                                 <div id='pp-bottom'>
                                     <p>ID: {selectedUser[0]}</p>
@@ -774,7 +780,7 @@ function Profile() {
                         </div>
                         <div className='col col-8'>
                             <div
-                                className='col-6 mb-2'
+                                className='col-12 mb-2'
                                 style={{
                                     display: 'flex',
                                     flexDirection: 'column',
@@ -1214,6 +1220,11 @@ function Profile() {
                 onOk={handleOk}
                 onCancel={handleCancelModal}
                 width={1000}
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                }}
                 footer={[
                     <div key={0} className='webcam-buttons'>
                         <button
@@ -1249,22 +1260,33 @@ function Profile() {
                 ]}>
                 <div id='webcam-container'>
                     {screenshot && currUser[0] == selectedUser[0] ? (
-                        <div style={{ height: 480, width: 638.66 }}>
-                            <img src={screenshot} alt='Captured' />
+                        <div
+                            style={{
+                                height: 480,
+                                width: 480,
+                            }}>
+                            <img
+                                src={screenshot}
+                                alt='Captured'
+                                width={480}
+                                height={480}
+                                style={{ objectFit: 'cover' }} // Maintain aspect ratio
+                            />
                         </div>
                     ) : currUser[0] == selectedUser[0] ? (
                         <Webcam
+                            className='webcam-video'
                             ref={webcamRef}
                             audio={false}
                             height={480}
-                            width={638.66}
+                            width={480}
                             mirrored
                             screenshotQuality={1}
                             screenshotFormat='image/jpeg'
                         />
                     ) : (
                         <>
-                            <div style={{ height: 480, width: 638.66 }}>
+                            <div style={{ height: 480, width: 480 }}>
                                 <img
                                     src={
                                         screenshot
@@ -1272,6 +1294,9 @@ function Profile() {
                                             : `data:image/jpeg;base64, ${image}`
                                     }
                                     alt='Captured'
+                                    width={480}
+                                    height={480}
+                                    style={{ objectFit: 'cover' }} // Maintain aspect ratio
                                 />
                             </div>
                             <input

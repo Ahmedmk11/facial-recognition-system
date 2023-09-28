@@ -37,6 +37,38 @@ body.dark {
   align-items: center;
 }
 
+#login-form-container {
+  width: 550px;
+  background-color: var(--page-item-bg);
+  padding: 26px;
+  margin: 26px;
+  box-sizing: border-box;
+  border-radius: 20px;
+  -webkit-border-radius: 20px;
+  -moz-border-radius: 20px;
+  -ms-border-radius: 20px;
+  -o-border-radius: 20px;
+}
+#login-form-container h3 {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 26px;
+  color: var(--field-content);
+}
+#login-form-container .ant-row {
+  width: 100% !important;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+#login-form-container label {
+  margin-right: 100%;
+}
+#login-form-container .ant-btn {
+  width: 100%;
+}
+
 #profile-page #profile-page-content {
   box-sizing: border-box;
   padding: 12px 12px 12px 0px;
@@ -137,6 +169,22 @@ body.dark {
   font-weight: 500;
 }
 
+#register-page {
+  min-height: 800px !important;
+}
+#register-page #register-content-c {
+  height: 100%;
+  width: 100%;
+  padding-top: 26px;
+  padding-bottom: 26px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 26px;
+}
+
 #register-form-container {
   width: 550px;
   background-color: var(--page-item-bg);
@@ -170,40 +218,6 @@ body.dark {
 }
 #register-form-container .ant-btn {
   width: 100%;
-}
-
-#webcam-container {
-  padding: 16px;
-  height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 26px;
-}
-#webcam-container video {
-  border: 2px solid #000;
-  border-radius: 16px;
-  -webkit-border-radius: 16px;
-  -moz-border-radius: 16px;
-  -ms-border-radius: 16px;
-  -o-border-radius: 16px;
-}
-
-.webcam-buttons {
-  width: 550px;
-  height: fit-content;
-  margin: auto;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  gap: 26px;
-}
-.webcam-buttons button {
-  font-size: 15px !important;
-  width: 150px !important;
 }
 
 #attendance-content {

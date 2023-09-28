@@ -12,27 +12,37 @@ function Login() {
     const [form] = Form.useForm()
     const webcamRef = useRef(null)
     const [webcamReady, setWebcamReady] = useState(false)
+    const [goBack, setGoBack] = useState(false)
     const [isWebcamVisible, setIsWebcamVisible] = useState(false)
     const [un, setUn] = useState('')
 
     useEffect(() => {
-        let cleanup: any
+        let cleanupFunc: any
 
         if (webcamReady && location.pathname === '/login') {
             const startCapture = () => {
                 console.log('hi')
-                cleanup = captureFramesAndSend(un)
+                cleanupFunc = captureFramesAndSend(un)
             }
             startCapture()
         }
 
-        return () => {
-            if (cleanup) {
-                console.log('stop')
-                cleanup.stop()
+        if (goBack && cleanupFunc) {
+            cleanupFunc.stop()
+        }
+
+        if (!webcamReady) {
+            if (cleanupFunc) {
+                cleanupFunc.stop()
             }
         }
-    }, [webcamReady, location])
+
+        return () => {
+            if (cleanupFunc) {
+                cleanupFunc.stop()
+            }
+        }
+    }, [webcamReady, location, goBack])
 
     const onFinish = async (values: any) => {
         try {
@@ -85,46 +95,59 @@ function Login() {
     return (
         <div id='login-page'>
             <NavBar />
-            <div id='login-form-container'>
-                <Form
-                    form={form}
-                    name='login'
-                    onFinish={onFinish}
-                    labelCol={{ span: 6 }}
-                    wrapperCol={{ span: 18 }}>
-                    <Item
-                        label='Username'
-                        name='username'
-                        rules={[
-                            {
-                                required: true,
-                                message: 'Please enter a username',
-                            },
-                            { validator: checkUserNameExists },
-                        ]}>
-                        <Input />
-                    </Item>
-                    <Item wrapperCol={{ offset: 6, span: 18 }}>
+            {!isWebcamVisible && (
+                <div id='login-form-container'>
+                    <Form
+                        form={form}
+                        name='login'
+                        onFinish={onFinish}
+                        labelCol={{ span: 6 }}
+                        wrapperCol={{ span: 18 }}>
+                        <h3>Login</h3>
+                        <Item
+                            label='Username'
+                            name='username'
+                            rules={[
+                                {
+                                    required: true,
+                                    message: 'Please enter a username',
+                                },
+                                { validator: checkUserNameExists },
+                            ]}>
+                            <Input />
+                        </Item>
                         <Button type='primary' htmlType='submit'>
                             Login
                         </Button>
-                    </Item>
-                </Form>
-            </div>
+                    </Form>
+                </div>
+            )}
             {isWebcamVisible && (
-                <Webcam
-                    id='videoElement'
-                    ref={webcamRef}
-                    audio={false}
-                    height={480}
-                    width={638.66}
-                    mirrored
-                    screenshotQuality={1}
-                    screenshotFormat='image/jpeg'
-                    onUserMedia={() => {
-                        setWebcamReady(true)
-                    }}
-                />
+                <div id='webcam-container'>
+                    <Webcam
+                        className='webcam-video'
+                        id='videoElement'
+                        ref={webcamRef}
+                        audio={false}
+                        height={480}
+                        width={480}
+                        mirrored
+                        screenshotQuality={1}
+                        screenshotFormat='image/jpeg'
+                        onUserMedia={() => {
+                            setWebcamReady(true)
+                            setGoBack(false)
+                        }}
+                    />
+                    <Button
+                        type='primary'
+                        onClick={() => {
+                            setGoBack(true)
+                            setIsWebcamVisible(false)
+                        }}>
+                        Go Back
+                    </Button>
+                </div>
             )}
             <Footer />
         </div>
