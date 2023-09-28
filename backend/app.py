@@ -214,13 +214,6 @@ def register():
         inserted_id = res[0][0][0]
 
         if inserted_id != -1:
-            session['user'] = {
-                'user_id': inserted_id,
-                'username': username,
-                'email': email,
-                'firstname': firstname,
-                'lastname': lastname,
-            }
             response_data = {'message': 'Registration successful'}
             return jsonify(response_data), 200
         else:
@@ -265,6 +258,41 @@ def get_webcam_frames():
                     return jsonify({'message': 'Login Failed, Cannot insert attendance'}), 500
                 else:
                     return jsonify({'message': 'Login Successful'}), 200
+            else:
+                allPics = call_procedure('GetAllUsersPictures')
+                [allIDs] = call_procedure('GetAllUserIDs')
+                bin_strings = allPics[0]
+                print('bin_strings', bin_strings)
+                index = 0
+                for bin_tuple in bin_strings:
+                    bin_s = bin_tuple[0]
+                    possible_image_base64 = [base64.b64encode(bin_s).decode('utf-8')]
+                    isMatchAnotherUsername = find_matches(test_image_base64, possible_image_base64)
+                    fid = allIDs[index]
+                    print('fid', fid)
+                    if isMatchAnotherUsername:
+                        queryResult = call_procedure('GetAllUsersByUsername', un)
+                        [[found_user]] = call_procedure('GetUserByID', fid[0])
+                        if queryResult and found_user:
+                            fn = f'{queryResult[0][0][1]} {queryResult[0][0][2]}'
+                            eid = queryResult[0][0][0]
+                            user_in_picture_name = f'{found_user[1]} {found_user[2]}'
+                            user_in_picture_id = found_user[0]
+
+                            cnx = create_db_connection()
+                            cursor = cnx.cursor()
+                            cursor.callproc('InsertNotification', args=(user_in_picture_id, eid, user_in_picture_name, fn))
+                            cnx.commit()
+                            cursor.close()
+                            cnx.close()
+
+                            return jsonify({'message': 'Violaton happened', 'violation': True, 'vname': user_in_picture_name}), 403
+                        else:
+                            return jsonify({'message': 'Cant Find user'}), 404
+                    else:
+                        index += 1
+                        continue
+                return jsonify({'message': 'Not recognized'}), 418
 
 @app.route('/login', methods=['POST'])
 def login():

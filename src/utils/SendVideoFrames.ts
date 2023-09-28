@@ -29,7 +29,12 @@ export const captureFramesAndSend = (un: string) => {
             )
             .then((response) => {
                 if (response.status === 200) {
-                    message.success('Login successful')
+                    if (
+                        document.getElementsByClassName('ant-message-notice')
+                            .length === 0
+                    ) {
+                        message.success('Login successful')
+                    }
                     stopCapture()
                     setTimeout(() => {
                         window.location.href = '/home'
@@ -47,16 +52,32 @@ export const captureFramesAndSend = (un: string) => {
                         if (statusCode === 403) {
                             if (error.response.data.message == 0) {
                                 message.error(
-                                    'Please ensure your face is well-centered within the frame for accurate recognition.'
+                                    'Please ensure your face is well-centered within the frame for accurate recognition.',
+                                    1
+                                )
+                            } else if (error.response.data.message > 1) {
+                                message.error(
+                                    'Please ensure that you are the only person in the frame.',
+                                    1
                                 )
                             } else {
-                                message.error(
-                                    'Please ensure that you are the only person in the frame.'
-                                )
+                                if (error.response.data.violation) {
+                                    const vname = error.response.data.vname
+                                    message.error(
+                                        `Hello, ${vname}. Using a different username to login isn't allowed.`,
+                                        1
+                                    )
+                                }
                             }
                         } else if (statusCode === 500) {
                             message.error(
-                                'Login Failed, Cannot insert attendance'
+                                'Login Failed, Cannot insert attendance',
+                                1
+                            )
+                        } else if (statusCode === 418) {
+                            message.error(
+                                `Face not centered correctly. Is ${un} your correct username?`,
+                                1
                             )
                         } else {
                             console.log(`Error status code: ${statusCode}`)
@@ -68,7 +89,8 @@ export const captureFramesAndSend = (un: string) => {
                             .length === 0
                     ) {
                         message.error(
-                            `Face not recognized. Is ${un} your correct username?`
+                            `Face not recognized. Is ${un} your correct username?`,
+                            1
                         )
                     }
                 }

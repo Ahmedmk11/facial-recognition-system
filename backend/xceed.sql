@@ -43,6 +43,17 @@ BEGIN
         attendance_date DATETIME NOT NULL,
         FOREIGN KEY (user_id) REFERENCES User(id)
     );
+
+    CREATE TABLE Notifications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user1_id INT NOT NULL,
+        user2_id INT NOT NULL,
+        user1_fn VARCHAR(256) NOT NULL,
+        user2_fn VARCHAR(256) NOT NULL,
+        violation_date DATETIME NOT NULL,
+        FOREIGN KEY (user1_id) REFERENCES User(id),
+        FOREIGN KEY (user2_id) REFERENCES User(id)
+    );
 END;
 
 CREATE PROCEDURE DropAllTables()
@@ -288,15 +299,49 @@ BEGIN
     DROP TEMPORARY TABLE IF EXISTS temp_user_ids;
 END;
 
-DROP PROCEDURE GetUserPicture
-
 CREATE PROCEDURE GetUserPicture(IN un VARCHAR(64))
 BEGIN
     SELECT user_picture FROM User WHERE username = un;
 END;
 
-CALL GetUserPicture('ahmedmk1133');
+CREATE PROCEDURE GetAllUsersPictures()
+BEGIN
+    SELECT user_picture FROM User;
+END;
 
+CREATE PROCEDURE GetAllUserIDs()
+BEGIN
+    SELECT id FROM User;
+END;
+
+CREATE PROCEDURE InsertNotification(IN uid1 INT, IN uid2 INT, IN fn1 VARCHAR(256), IN fn2 VARCHAR(256))
+BEGIN
+    DECLARE existing_records INT;
+
+    SELECT COUNT(*) INTO existing_records
+    FROM Notifications
+    WHERE user1_id = uid1 AND user2_id = uid2 AND DATE(violation_date) = CURDATE();
+
+    IF existing_records = 0 THEN
+        INSERT INTO Notifications (user1_id, user2_id, user1_fn, user2_fn, violation_date)
+        VALUES (uid1, uid2, fn1, fn2, NOW());
+    END IF;
+END;
+
+CREATE PROCEDURE DeleteNotification(IN nid INT)
+BEGIN
+    # to do
+END;
+
+CREATE PROCEDURE GetAllNotifications()
+BEGIN
+    SELECT * FROM Notifications;
+END;
+
+CREATE PROCEDURE GetAllNotificationsFromDepartment(IN did INT)
+BEGIN
+    # to do
+END;
 
 -- Testing
 
@@ -314,10 +359,11 @@ CALL GetAllDepartments();
 SELECT * FROM Department;
 SELECT * FROM User;
 SELECT * FROM Attendance;
+SELECT * FROM Notifications;
 
 CALL InsertDepartment('TBA', 'TBA')
 
-TRUNCATE table Attendance;
+TRUNCATE table Notifications;
 
 DROP PROCEDURE CreateAllTables;
 DROP PROCEDURE DropAllTables;
@@ -366,7 +412,7 @@ CALL GetUsernameCount('ahmedmk11');
 
 UPDATE User
 SET role = 'super'
-WHERE username = 'ahmedmk11a';
+WHERE username = 'amahmoud';
 
 ALTER TABLE Department CHANGE active dep_status VARCHAR(1);
 
@@ -391,3 +437,6 @@ CALL UpdateUser(1,'Ahmedd', 'Mahmoud', 'ahmedmahmoud1903@outlook.com', 'ahmedmk1
 
 ALTER TABLE User
 MODIFY COLUMN user_picture MEDIUMBLOB;
+
+TRUNCATE TABLE Notifications;
+ALTER TABLE Notifications AUTO_INCREMENT = 1;

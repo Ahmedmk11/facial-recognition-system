@@ -124,21 +124,24 @@ function Login() {
             )}
             {isWebcamVisible && (
                 <div id='webcam-container'>
-                    <Webcam
-                        className='webcam-video'
-                        id='videoElement'
-                        ref={webcamRef}
-                        audio={false}
-                        height={480}
-                        width={480}
-                        mirrored
-                        screenshotQuality={1}
-                        screenshotFormat='image/jpeg'
-                        onUserMedia={() => {
-                            setWebcamReady(true)
-                            setGoBack(false)
-                        }}
-                    />
+                    <div className='video-container'>
+                        <Webcam
+                            className='webcam-video'
+                            id='videoElement'
+                            ref={webcamRef}
+                            audio={false}
+                            height={480}
+                            width={480}
+                            mirrored
+                            screenshotQuality={1}
+                            screenshotFormat='image/jpeg'
+                            onUserMedia={() => {
+                                setWebcamReady(true)
+                                setGoBack(false)
+                            }}
+                        />
+                        <div className='face-overlay'></div>
+                    </div>
                     <Button
                         type='primary'
                         onClick={() => {

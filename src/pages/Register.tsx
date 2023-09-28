@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Form, Input, Button, DatePicker, message } from 'antd'
+import React, { useEffect, useState } from 'react'
+import { Form, Input, Button, DatePicker, message, notification } from 'antd'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -27,8 +27,24 @@ function Register() {
     const navigate = useNavigate()
     const [currentStep, setCurrentStep] = useState(0)
     const [screenshot, setScreenshot] = useState(null)
+    const [api, contextHolder] = notification.useNotification()
 
     const webcamRef = React.useRef(null)
+
+    const openNotification = () => {
+        api.open({
+            message: 'Face Positioning Reminder',
+            description:
+                'To achieve the best results, please make sure your face is correctly aligned within the frame.',
+            icon: <SmileOutlined style={{ color: '#108ee9' }} />,
+        })
+    }
+
+    useEffect(() => {
+        setTimeout(() => {
+            openNotification()
+        }, 1000)
+    }, [])
 
     const capture = React.useCallback(() => {
         const cam = webcamRef.current as any
@@ -100,16 +116,19 @@ function Register() {
                             />
                         </div>
                     ) : (
-                        <Webcam
-                            className='webcam-video'
-                            ref={webcamRef}
-                            audio={false}
-                            height={480}
-                            width={480}
-                            mirrored
-                            screenshotQuality={1}
-                            screenshotFormat='image/jpeg'
-                        />
+                        <div className='video-container'>
+                            <Webcam
+                                className='webcam-video'
+                                ref={webcamRef}
+                                audio={false}
+                                height={480}
+                                width={480}
+                                mirrored
+                                screenshotQuality={1}
+                                screenshotFormat='image/jpeg'
+                            />
+                            <div className='face-overlay'></div>
+                        </div>
                     )}
                     <div className='webcam-buttons'>
                         <button
@@ -339,7 +358,7 @@ function Register() {
                         type='button'
                         className='btn btn-primary btn-lg float-right custom-button'
                         onClick={() => {
-                            navigate('/home')
+                            navigate('/login')
                         }}>
                         Home
                     </button>
@@ -384,6 +403,7 @@ function Register() {
                 {steps[currentStep].content}
             </div>
             <Footer />
+            {contextHolder}
         </div>
     )
 }

@@ -1274,16 +1274,19 @@ function Profile() {
                             />
                         </div>
                     ) : currUser[0] == selectedUser[0] ? (
-                        <Webcam
-                            className='webcam-video'
-                            ref={webcamRef}
-                            audio={false}
-                            height={480}
-                            width={480}
-                            mirrored
-                            screenshotQuality={1}
-                            screenshotFormat='image/jpeg'
-                        />
+                        <div className='video-container'>
+                            <Webcam
+                                className='webcam-video'
+                                ref={webcamRef}
+                                audio={false}
+                                height={480}
+                                width={480}
+                                mirrored
+                                screenshotQuality={1}
+                                screenshotFormat='image/jpeg'
+                            />
+                            <div className='face-overlay'></div>
+                        </div>
                     ) : (
                         <>
                             <div style={{ height: 480, width: 480 }}>

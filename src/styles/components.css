@@ -287,15 +287,12 @@ body.dark {
 #webcam-container {
   box-sizing: border-box;
   padding: 16px;
-  height: 480px;
-  width: 480px;
   margin: 26px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 26px;
-  aspect-ratio: 1/1;
 }
 #webcam-container video {
   width: 480px !important;
@@ -333,10 +330,51 @@ body.dark {
   width: 150px !important;
 }
 
+.video-container {
+  aspect-ratio: 1/1;
+  position: relative;
+  width: 480px;
+  height: 480px;
+}
+
 .webcam-video {
   width: 480px !important;
   height: 480px !important;
   object-fit: cover;
+}
+
+.face-overlay {
+  position: absolute;
+  border: 2.5px solid white;
+  width: 250px;
+  height: 400px;
+  opacity: 0.6;
+  animation: blink 1s ease-in-out infinite;
+  -webkit-animation: blink 1s ease-in-out infinite;
+  border-radius: 50%;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  -ms-border-radius: 50%;
+  -o-border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  -webkit-transform: translate(-50%, -50%);
+  -moz-transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  -o-transform: translate(-50%, -50%);
+}
+
+@keyframes blink {
+  0% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0.8;
+  }
 }
 
 /*# sourceMappingURL=components.css.map */
