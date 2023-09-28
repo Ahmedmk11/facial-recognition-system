@@ -15,34 +15,28 @@ function Login() {
     const [goBack, setGoBack] = useState(false)
     const [isWebcamVisible, setIsWebcamVisible] = useState(false)
     const [un, setUn] = useState('')
+    const cleanupFuncRef = useRef<any>(null)
 
     useEffect(() => {
-        let cleanupFunc: any
+        const startCapture = () => {
+            cleanupFuncRef.current = captureFramesAndSend(un)
+        }
 
-        if (webcamReady && location.pathname === '/login') {
-            const startCapture = () => {
-                console.log('hi')
-                cleanupFunc = captureFramesAndSend(un)
-            }
+        if (webcamReady && location.pathname === '/login' && !goBack) {
             startCapture()
-        }
-
-        if (goBack && cleanupFunc) {
-            cleanupFunc.stop()
-        }
-
-        if (!webcamReady) {
-            if (cleanupFunc) {
-                cleanupFunc.stop()
+        } else {
+            if (cleanupFuncRef.current) {
+                cleanupFuncRef.current.stop()
             }
         }
 
         return () => {
-            if (cleanupFunc) {
-                cleanupFunc.stop()
+            if (cleanupFuncRef.current) {
+                console.log('stop')
+                cleanupFuncRef.current.stop()
             }
         }
-    }, [webcamReady, location, goBack])
+    }, [webcamReady, location, goBack, un])
 
     const onFinish = async (values: any) => {
         try {

@@ -1,6 +1,8 @@
 import { message } from 'antd'
 import axios from 'axios'
 
+let cancelTokenSources: any = []
+
 export const captureFramesAndSend = (un: string) => {
     let intervalId = null as any
 
@@ -14,6 +16,8 @@ export const captureFramesAndSend = (un: string) => {
     canvas.height = 480
 
     const captureAndSendFrame = () => {
+        let source = axios.CancelToken.source()
+        cancelTokenSources.push(source)
         context.drawImage(videoElement, 0, 0, canvas.width, canvas.height)
         const frameData = canvas.toDataURL('image/jpeg', 1.0)
         axios
@@ -25,6 +29,7 @@ export const captureFramesAndSend = (un: string) => {
                 },
                 {
                     withCredentials: true,
+                    cancelToken: source.token, // Pass the cancel token to the request
                 }
             )
             .then((response) => {
@@ -42,56 +47,62 @@ export const captureFramesAndSend = (un: string) => {
                 }
             })
             .catch((error) => {
-                if (error.response && error.response.status) {
-                    if (
-                        document.getElementsByClassName('ant-message-notice')
-                            .length === 0
-                    ) {
-                        const statusCode = error.response.status
+                if (axios.isCancel(error)) {
+                    console.log('Request cancelled')
+                } else {
+                    if (error.response && error.response.status) {
+                        if (
+                            document.getElementsByClassName(
+                                'ant-message-notice'
+                            ).length === 0
+                        ) {
+                            const statusCode = error.response.status
 
-                        if (statusCode === 403) {
-                            if (error.response.data.message == 0) {
+                            if (statusCode === 403) {
+                                if (error.response.data.message == 0) {
+                                    message.error(
+                                        'Please ensure your face is well-centered within the frame for accurate recognition.',
+                                        1
+                                    )
+                                } else if (error.response.data.message > 1) {
+                                    message.error(
+                                        'Please ensure that you are the only person in the frame.',
+                                        1
+                                    )
+                                } else {
+                                    if (error.response.data.violation) {
+                                        const vname = error.response.data.vname
+                                        message.error(
+                                            `Hello, ${vname}. Using a different username to login isn't allowed.`,
+                                            1
+                                        )
+                                    }
+                                }
+                            } else if (statusCode === 500) {
                                 message.error(
-                                    'Please ensure your face is well-centered within the frame for accurate recognition.',
+                                    'Login Failed, Cannot insert attendance',
                                     1
                                 )
-                            } else if (error.response.data.message > 1) {
+                            } else if (statusCode === 418) {
                                 message.error(
-                                    'Please ensure that you are the only person in the frame.',
+                                    `Face not centered correctly. Is ${un} your correct username?`,
                                     1
                                 )
                             } else {
-                                if (error.response.data.violation) {
-                                    const vname = error.response.data.vname
-                                    message.error(
-                                        `Hello, ${vname}. Using a different username to login isn't allowed.`,
-                                        1
-                                    )
-                                }
+                                console.log(`Error status code: ${statusCode}`)
                             }
-                        } else if (statusCode === 500) {
-                            message.error(
-                                'Login Failed, Cannot insert attendance',
-                                1
-                            )
-                        } else if (statusCode === 418) {
-                            message.error(
-                                `Face not centered correctly. Is ${un} your correct username?`,
-                                1
-                            )
-                        } else {
-                            console.log(`Error status code: ${statusCode}`)
                         }
-                    }
-                } else {
-                    if (
-                        document.getElementsByClassName('ant-message-notice')
-                            .length === 0
-                    ) {
-                        message.error(
-                            `Face not recognized. Is ${un} your correct username?`,
-                            1
-                        )
+                    } else {
+                        if (
+                            document.getElementsByClassName(
+                                'ant-message-notice'
+                            ).length === 0
+                        ) {
+                            message.error(
+                                `Face not recognized. Is ${un} your correct username?`,
+                                1
+                            )
+                        }
                     }
                 }
             })
@@ -103,6 +114,9 @@ export const captureFramesAndSend = (un: string) => {
 
     const stopCapture = () => {
         clearInterval(intervalId)
+        cancelTokenSources.forEach((source: any) => source.cancel())
+        // Clear the array of CancelToken sources
+        cancelTokenSources = []
     }
     startCapture()
 
