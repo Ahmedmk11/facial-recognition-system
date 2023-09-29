@@ -64,8 +64,7 @@ function Attendance() {
         try {
             const attendance = await getUserAttendance(uid)
             return attendance
-        } catch (error) {
-            console.log(error)
+        } catch (error: any) {
             return []
         }
     }
@@ -91,9 +90,7 @@ function Attendance() {
                     setAttendance(filteredAttendance)
                     setIsLoading(false)
                 })
-                .catch((error) => {
-                    console.error(error)
-                })
+                .catch((error) => {})
         } else {
             setAttendance([])
             setData([])
@@ -151,9 +148,7 @@ function Attendance() {
                 setAttendance(filteredAttendance)
                 setIsLoading(false)
             })
-            .catch((error) => {
-                console.error(error)
-            })
+            .catch((error) => {})
     }, [currUser])
 
     const columns: ColumnsType<DataType> = [
@@ -227,8 +222,6 @@ function Attendance() {
                 Time: [] as string[],
             }
 
-            console.log('dataaa', data)
-
             data.forEach((a: any) => {
                 newDownloadData.ID.push(a.uid)
                 newDownloadData.FullName.push(a.fullname)
@@ -242,7 +235,6 @@ function Attendance() {
     }, [data])
 
     const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
-        console.log('selectedRowKeys changed: ', newSelectedRowKeys)
         setSelectedRowKeys(newSelectedRowKeys)
     }
 
@@ -292,8 +284,7 @@ function Attendance() {
         try {
             const users = await getAllUsers()
             return users
-        } catch (error) {
-            console.log(error)
+        } catch (error: any) {
             return []
         }
     }
@@ -302,8 +293,7 @@ function Attendance() {
         try {
             const deps = await getAllDepartments()
             return deps
-        } catch (error) {
-            console.log(error)
+        } catch (error: any) {
             return []
         }
     }
@@ -313,9 +303,7 @@ function Attendance() {
             .then((role) => {
                 setRole(role)
             })
-            .catch((error) => {
-                console.log(error)
-            })
+            .catch((error) => {})
     }, [])
 
     useEffect(() => {
@@ -323,23 +311,17 @@ function Attendance() {
             .then((departments) => {
                 setDepartments(departments)
             })
-            .catch((error) => {
-                console.error(error)
-            })
+            .catch((error) => {})
         getUsersResponse()
             .then((users) => {
                 setUsers(users)
             })
-            .catch((error) => {
-                console.error(error)
-            })
+            .catch((error) => {})
         getUserByID()
             .then((user) => {
                 setCurrUser(user)
             })
-            .catch((error) => {
-                console.error(error)
-            })
+            .catch((error) => {})
     }, [])
 
     useEffect(() => {
@@ -389,7 +371,6 @@ function Attendance() {
                         No Users Found
                     </Option>
                 )
-            console.log('uuuusssss', department)
             return (
                 <OptGroup
                     key={`optgroup_${department[0]}`}

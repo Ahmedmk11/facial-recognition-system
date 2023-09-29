@@ -31,8 +31,7 @@ function Departments() {
         try {
             const deps = await getAllDepartments()
             return deps
-        } catch (error) {
-            console.log(error)
+        } catch (error: any) {
             return []
         }
     }
@@ -42,17 +41,13 @@ function Departments() {
             .then((role) => {
                 setRole(role)
             })
-            .catch((error) => {
-                console.log(error)
-            })
+            .catch((error) => {})
 
         getUserByID()
             .then((user) => {
                 setCurrUser(user)
             })
-            .catch((error) => {
-                console.error(error)
-            })
+            .catch((error) => {})
 
         getDepartmentsResponse().then((data: any) => {
             const sortedArrayOfArrays = data

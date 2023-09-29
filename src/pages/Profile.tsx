@@ -108,7 +108,6 @@ function Profile() {
     const handleSaveImage = () => {
         if (screenshot) {
             setImage(screenshot.split('data:image/jpeg;base64,')[1])
-            console.log('ss', screenshot.split('data:image/jpeg;base64,')[1])
             handleOk()
         }
     }
@@ -225,7 +224,6 @@ function Profile() {
                     const departmentNameCurr = departmentNameSiteCurr
                         ? departmentNameSiteCurr[0]
                         : 'TBA'
-                    console.log('wow', departmentNameSiteCurr)
                     setFirstName(selectedUser[1] ? selectedUser[1] : 'TBA')
                     setLastName(selectedUser[2] ? selectedUser[2] : 'TBA')
                     setUserName(selectedUser[4] ? selectedUser[4] : 'TBA')
@@ -247,12 +245,9 @@ function Profile() {
                     setImage(selectedUser[13] ? selectedUser[13] : 'TBA')
                     setDep(departmentNameCurr ? departmentNameCurr : 'TBA')
                     setSite(departmentSiteCurr ? departmentSiteCurr : 'TBA')
-                    console.log('-----0---------0--------0----------0')
                     setIsLoading(false)
                 })
-                .catch((error) => {
-                    console.error(error)
-                })
+                .catch((error) => {})
         }
     }, [selectedUser, selectedOptions])
 
@@ -267,7 +262,6 @@ function Profile() {
             const nameAndSite = await checkUserDepartmentAndSite(uid)
             return nameAndSite
         } catch (error) {
-            console.log(error)
             return ['', '']
         }
     }
@@ -277,7 +271,6 @@ function Profile() {
             const users = await getAllUsers()
             return users
         } catch (error) {
-            console.log(error)
             return []
         }
     }
@@ -287,7 +280,6 @@ function Profile() {
             const deps = await getAllDepartments()
             return deps
         } catch (error) {
-            console.log(error)
             return []
         }
     }
@@ -297,7 +289,6 @@ function Profile() {
             const did = await getDepartmentID(n, s)
             return did
         } catch (error) {
-            console.log(error)
             return -1
         }
     }
@@ -307,23 +298,17 @@ function Profile() {
             .then((departments) => {
                 setDepartments(departments)
             })
-            .catch((error) => {
-                console.error(error)
-            })
+            .catch((error) => {})
         getUsersResponse()
             .then((users) => {
                 setUsers(users)
             })
-            .catch((error) => {
-                console.error(error)
-            })
+            .catch((error) => {})
         getUserByID()
             .then((user) => {
                 setCurrUser(user)
             })
-            .catch((error) => {
-                console.error(error)
-            })
+            .catch((error) => {})
     }, [])
 
     useEffect(() => {
@@ -370,7 +355,6 @@ function Profile() {
                                 No Users Found
                             </Option>
                         )
-                    console.log('uuuusssss', department)
                     return (
                         <OptGroup
                             key={`optgroup_${department[0]}`}
@@ -390,18 +374,10 @@ function Profile() {
                     .then((user) => {
                         setSelectedUser(user)
                     })
-                    .catch((error) => {
-                        console.error(error)
-                    })
+                    .catch((error) => {})
             }
         }
     }, [selectedOptions])
-
-    useEffect(() => {
-        console.log(departments)
-        console.log(users)
-        console.log('selectedUser', selectedUser)
-    }, [departments, users, selectedUser])
 
     const checkIsAllowed = async () => {
         if (role == 'super') {
@@ -440,9 +416,7 @@ function Profile() {
             .then((role) => {
                 setRole(role)
             })
-            .catch((error) => {
-                console.log(error)
-            })
+            .catch((error) => {})
     }, [])
 
     useEffect(() => {
@@ -458,7 +432,6 @@ function Profile() {
                 const departmentNameCurr = departmentNameSiteCurr
                     ? departmentNameSiteCurr[0]
                     : 'TBA'
-                console.log('wow', departmentNameSiteCurr)
                 setFirstName(selectedUser[1] ? selectedUser[1] : 'TBA')
                 setLastName(selectedUser[2] ? selectedUser[2] : 'TBA')
                 setUserName(selectedUser[4] ? selectedUser[4] : 'TBA')
@@ -480,11 +453,8 @@ function Profile() {
                 setImage(selectedUser[13] ? selectedUser[13] : 'TBA')
                 setDep(departmentNameCurr ? departmentNameCurr : 'TBA')
                 setSite(departmentSiteCurr ? departmentSiteCurr : 'TBA')
-                console.log('-----0---------0--------0----------0')
             })
-            .catch((error) => {
-                console.error(error)
-            })
+            .catch((error) => {})
         setFirstNameError('')
         setLastNameError('')
         setUserNameError('')
@@ -495,10 +465,6 @@ function Profile() {
         setJobTitleError('')
         setIsEdit(false)
     }
-
-    useEffect(() => {
-        console.log('role: hm ', role)
-    }, [role])
 
     async function handleSave() {
         if (
@@ -512,7 +478,6 @@ function Profile() {
             !jobTitleError
         ) {
             setRender(!render)
-            console.log('bb', stringToDate(birthdate))
             updateUser(
                 selectedUser[0],
                 firstName,
@@ -531,14 +496,11 @@ function Profile() {
                 true
             )
                 .then((result: any) => {
-                    console.log('User updated successfully:', result)
+                    message.success('Changes saved successfully', 4)
                 })
-                .catch((error: any) => {
-                    console.error('Failed to update user:', error)
-                })
+                .catch((error: any) => {})
 
             setIsEdit(false)
-            message.success('Changes saved successfully', 4)
         } else {
             message.error(
                 'Please review the highlighted fields and make sure they meet the required criteria before saving.',
@@ -611,22 +573,15 @@ function Profile() {
                         department[0] == selectedDepartments.split('_')[1]
                 )
                 if (foundDepartment) {
-                    console.log(foundDepartment)
                     setDep(foundDepartment[1])
                     setSite(foundDepartment[2])
                 }
             })
-            .catch((error) => {
-                console.error(error)
-            })
+            .catch((error) => {})
     }, [selectedDepartments])
-    // useEffect(() => {
-    //     setStatus(selectedUserStatus)
-    // }, [selectedUserStatus])
 
     useEffect(() => {
         setSelectedOptions(`user_${currUser[0]}`)
-        console.log('currrr', currUser)
     }, [currUser])
 
     const groupedDepartments: any = {}
@@ -639,7 +594,6 @@ function Profile() {
         }
 
         groupedDepartments[site].push([department[0], department[1]])
-        console.log(groupedDepartments)
     })
 
     const filteredOptionsDepartment = Object.entries(groupedDepartments).map(
@@ -660,10 +614,6 @@ function Profile() {
         }
     )
 
-    useEffect(() => {
-        console.log('hmmsttatus', status)
-    }, [status])
-
     function upload(event: any): void {
         if (inputRef && inputRef.current) {
             const inp = inputRef.current as any
@@ -678,17 +628,16 @@ function Profile() {
                 const reader = new FileReader()
                 reader.onload = (e) => {
                     const base64Image = e.target?.result as string
-                    console.log('Base64-encoded image:', base64Image)
                     if (base64Image) {
                         setScreenshot(base64Image) // force 480x480
                     } else {
-                        console.error('Invalid base64 image format')
                     }
                 }
-
                 reader.readAsDataURL(selectedFile)
             } else {
-                console.log('Please select a JPEG image.')
+                message.error(
+                    'Please choose a 480x480 JPEG image for best results.'
+                )
             }
         }
     }

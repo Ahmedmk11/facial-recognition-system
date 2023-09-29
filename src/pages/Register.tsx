@@ -86,18 +86,14 @@ function Register() {
                             withCredentials: true,
                         }
                     )
-                    console.log('Server response:', response.data)
                     message.success('Registration successful')
                     form.resetFields()
                     nextStep()
                 } catch (error) {
-                    console.error('Error:', error)
                     message.error('Registration failed')
                 }
             })
-            .catch((errorInfo) => {
-                console.log('Validation failed:', errorInfo)
-            })
+            .catch((errorInfo) => {})
     }
 
     const steps = [

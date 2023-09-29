@@ -32,7 +32,6 @@ function Login() {
 
         return () => {
             if (cleanupFuncRef.current) {
-                console.log('stop')
                 cleanupFuncRef.current.stop()
             }
         }
@@ -48,7 +47,6 @@ function Login() {
                     withCredentials: true,
                 }
             )
-            console.log('Server response:', response.data)
 
             if (response.status === 200) {
                 form.resetFields()
@@ -84,7 +82,7 @@ function Login() {
                     return Promise.reject('Username does not exist')
                 }
             } catch (error) {
-                console.error('Error checking username existence:', error)
+                message.error('Error checking username existence')
                 return Promise.reject('Error checking username existence')
             }
         }

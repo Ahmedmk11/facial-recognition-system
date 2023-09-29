@@ -6,7 +6,7 @@ USE xceed;
 
 SHOW DATABASES;
 
--- Queries
+-- Procedures Creation
 
 CREATE PROCEDURE CreateAllTables()
 BEGIN
@@ -32,8 +32,8 @@ BEGIN
         date_joined DATE,
         birthdate DATE NOT NULL,
         employment_status VARCHAR(32),
-        department_id INT, #
-        user_picture BLOB, #
+        department_id INT,
+        user_picture MEDIUMBLOB,
         FOREIGN KEY (department_id) REFERENCES Department(id)
     );
 
@@ -68,17 +68,10 @@ BEGIN
     INSERT INTO Department (name, site, dep_status) VALUES (depName, depSite, '1');
 END;
 
-CREATE PROCEDURE modifyDepartmentStatus(IN depStatus VARCHAR(18))
-BEGIN
-    INSERT INTO Department (dep_status) VALUES (depStatus);
-END;
-
 CREATE PROCEDURE GetIDByUserName(IN uname VARCHAR(64))
 BEGIN
     SELECT id FROM User WHERE username = uname;
 END;
-
-DROP PROCEDURE InsertUser
 
 CREATE PROCEDURE InsertUser(
   IN firstname VARCHAR(128),
@@ -124,8 +117,6 @@ BEGIN
     );
 END;
 
-DROP PROCEDURE InsertUser
-
 CREATE PROCEDURE InsertAttendance(
     IN uid INT
 )
@@ -147,34 +138,6 @@ BEGIN
     ELSE
         SELECT 'OK' AS result;
     END IF;
-END;
-
-CREATE PROCEDURE GetEmployeeNamesInDepartment( # wrong
-    IN departmentName VARCHAR(128),
-    IN siteName VARCHAR(128)
-)
-BEGIN
-  SELECT User.firstname, User.lastname
-  FROM User
-  INNER JOIN Department
-  ON User.department_id = Department.id
-  WHERE Department.status = '1';
-END;
-
-CREATE PROCEDURE GetDepartmentsInSite(
-    IN siteName VARCHAR(128)
-)
-BEGIN
-  SELECT name
-  FROM Department
-  WHERE Department.site = siteName AND Department.status = '1';
-END;
-
-CREATE PROCEDURE GetAllActiveDepartments ()
-BEGIN
-  SELECT name
-  FROM Department
-  WHERE Department.status = '1';
 END;
 
 CREATE PROCEDURE GetAllUsersByUsername (IN username VARCHAR(64))
@@ -231,8 +194,6 @@ CREATE PROCEDURE GetDepartmentIDFromNameSite (IN depName VARCHAR(128), IN depSit
 BEGIN
     SELECT id FROM Department WHERE name = depName AND site = depSite;
 END;
-
-DROP PROCEDURE UpdateUser
 
 CREATE PROCEDURE UpdateUser(
     IN userId INT,
@@ -370,7 +331,6 @@ CREATE TABLE debuglog (
 );
 
 SHOW PROCESSLIST;
-KILL 2612;
 
 CALL GetAllDepartments();
 
@@ -379,54 +339,34 @@ SELECT * FROM User;
 SELECT * FROM Attendance;
 SELECT * FROM Notifications;
 
-CALL InsertDepartment('TBA', 'TBA')
-
 TRUNCATE table Notifications;
 
-DROP PROCEDURE CreateAllTables;
-DROP PROCEDURE DropAllTables;
-
-DROP PROCEDURE InsertUser;
-DROP PROCEDURE InsertAttendance;
-
-DROP PROCEDURE InsertDepartment;
-DROP PROCEDURE modifyDepartmentStatus;
-DROP PROCEDURE GetEmployeeNamesInDepartment;
-DROP PROCEDURE GetDepartmentsInSite;
-DROP PROCEDURE GetAllActiveDepartments;
-DROP PROCEDURE GetAllUsersByUsername;
-DROP PROCEDURE GetUserByID;
-DROP PROCEDURE GetEmailCount;
-DROP PROCEDURE GetUsernameCount;
-DROP PROCEDURE GetPhoneNumberCount;
-DROP PROCEDURE GetUserRole;
-DROP PROCEDURE GetUserDepartmentAndSite;
-DROP PROCEDURE GetAllUsers;
-DROP PROCEDURE GetAllDepartments;
-DROP PROCEDURE UpdateUser;
-DROP PROCEDURE GetUserAttendance;
-
-CALL DropAllTables;
-CALL CreateAllTables;
-
-CALL GetAllDepartments;
-
-CALL GetAllUsersByUsername('ahmedmk11');
-
-CALL GetUserByID(2);
-
-CALL InsertUser('fhoheo' ,'employee', 'emD@gmaDiefl.com', 'empDef1D1', '13 El nour 11, 6', 'Cairo, Egypt', '033423243', '2005-11-25', 'tefsttt', @pp);
-SELECT @pp
-
-CALL GetAllUsers();
-
-CALL InsertDepartment('HR', 'Maadi Technology Park');
-CALL InsertDepartment('HR', 'Smart Village');
-CALL InsertDepartment('Application', 'Smart Village');
-CALL GetEmployeeNamesInDepartment('HR', 'Maadi Technology Park');
-CALL InsertAttendance('2023-09-12', 'ahmedmk11', @out)
-
-CALL GetUsernameCount('ahmedmk11');
+DROP PROCEDURE CreateAllTables
+DROP PROCEDURE DropAllTables
+DROP PROCEDURE InsertDepartment
+DROP PROCEDURE GetIDByUserName
+DROP PROCEDURE InsertUser
+DROP PROCEDURE InsertAttendance
+DROP PROCEDURE GetAllUsersByUsername
+DROP PROCEDURE GetUserByID
+DROP PROCEDURE GetEmailCount
+DROP PROCEDURE GetUsernameCount
+DROP PROCEDURE GetPhoneNumberCount
+DROP PROCEDURE GetUserRole
+DROP PROCEDURE GetUserDepartmentAndSite
+DROP PROCEDURE GetAllUsers
+DROP PROCEDURE GetAllDepartments
+DROP PROCEDURE GetDepartmentIDFromNameSite
+DROP PROCEDURE UpdateUser
+DROP PROCEDURE GetUserAttendance
+DROP PROCEDURE GetUserPicture
+DROP PROCEDURE GetAllUsersPictures
+DROP PROCEDURE GetAllUserIDs
+DROP PROCEDURE InsertNotification
+DROP PROCEDURE DeleteNotification
+DROP PROCEDURE GetAllNotifications
+DROP PROCEDURE GetAllNotificationsForAdmin
+DROP PROCEDURE UpdateDepartment
 
 UPDATE User
 SET role = 'super'
@@ -450,8 +390,6 @@ ADD COLUMN location VARCHAR(255);
 SELECT * FROM User;
 
 CALL GetUserAttendance(1)
-
-CALL UpdateUser(1,'Ahmedd', 'Mahmoud', 'ahmedmahmoud1903@outlook.com', 'ahmedmk11', 'TBA', '13 El Nour', 'Cairo, Egypt', '+20155080848', 'super' , '2023-09-03', '1', 3)
 
 ALTER TABLE User
 MODIFY COLUMN user_picture MEDIUMBLOB;

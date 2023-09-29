@@ -1,13 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import {
-    Button,
-    message,
-    Dropdown,
-    Space,
-    Badge,
-    MenuProps,
-    Divider,
-} from 'antd'
+import { Button, message, Dropdown, Space, Badge, MenuProps } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
@@ -43,16 +35,12 @@ function NavBar() {
                 .then((role) => {
                     setRole(role)
                 })
-                .catch((error) => {
-                    console.log(error)
-                })
+                .catch((error) => {})
             getUserByID()
                 .then((user) => {
                     setCurrUser(user)
                 })
-                .catch((error) => {
-                    console.error(error)
-                })
+                .catch((error) => {})
         }
     }, [])
 
@@ -65,10 +53,10 @@ function NavBar() {
                     withCredentials: true,
                 }
             )
-            console.log('Server response:', response.data)
+            message.success('Successfully logged out')
             navigate('/login')
-        } catch (error) {
-            console.error('Error:', error)
+        } catch (error: any) {
+            message.error('Error logging out')
         }
     }
 
@@ -107,7 +95,6 @@ function NavBar() {
                 const filteredNotifResAdmin = notifResAdmin.filter(
                     (item: any) => item[6] == '0'
                 )
-                console.log('hologogo', filteredNotifResAdmin)
                 if (role == 'super') {
                     const notificationData = filteredNotifResSuper.map(
                         (item: any, index: any) => (
@@ -118,6 +105,7 @@ function NavBar() {
                                     flexDirection: 'row',
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
+                                    border: 2,
                                 }}>
                                 <div>
                                     <p>
@@ -195,7 +183,6 @@ function NavBar() {
                                         You have {notificationData.length}{' '}
                                         notifications.
                                     </p>
-                                    <Divider />
                                 </div>
                             ),
                             key: 'n_0',
@@ -205,7 +192,6 @@ function NavBar() {
                                 label: (
                                     <div key={`notification_${index + 1}`}>
                                         {notification}
-                                        <Divider />
                                     </div>
                                 ),
                                 key: `notification_${index + 1}`,
@@ -293,7 +279,6 @@ function NavBar() {
                                         You have {notificationData.length}{' '}
                                         notifications.
                                     </p>
-                                    <Divider />
                                 </div>
                             ),
                             key: 'n_0',
@@ -303,7 +288,6 @@ function NavBar() {
                                 label: (
                                     <div key={`notification_${index + 1}`}>
                                         {notification}
-                                        <Divider />
                                     </div>
                                 ),
                                 key: `notification_${index + 1}`,
@@ -311,9 +295,7 @@ function NavBar() {
                         ) ?? []),
                     ])
                 }
-            } catch (error) {
-                console.error('Error fetching notifications:', error)
-            }
+            } catch (error: any) {}
         }
 
         fetchAdminNotifications()

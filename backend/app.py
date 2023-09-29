@@ -155,7 +155,6 @@ def call_insert_procedure(
         return
 
     except mysql.connector.Error as err:
-        print(f"Error: {err}")
         connection.rollback()
         return -1
     finally:
@@ -262,14 +261,12 @@ def get_webcam_frames():
                 allPics = call_procedure('GetAllUsersPictures')
                 [allIDs] = call_procedure('GetAllUserIDs')
                 bin_strings = allPics[0]
-                print('bin_strings', bin_strings)
                 index = 0
                 for bin_tuple in bin_strings:
                     bin_s = bin_tuple[0]
                     possible_image_base64 = [base64.b64encode(bin_s).decode('utf-8')]
                     isMatchAnotherUsername = find_matches(test_image_base64, possible_image_base64)
                     fid = allIDs[index]
-                    print('fid', fid)
                     if isMatchAnotherUsername:
                         queryResult = call_procedure('GetAllUsersByUsername', un)
                         [[found_user]] = call_procedure('GetUserByID', fid[0])
@@ -356,7 +353,6 @@ def delete_notification():
         cnx.close()
         return jsonify({'handled': True}), 200
     except Exception as e:
-        print(e)
         return jsonify({'handled': False}), 500
 
 @app.route('/api/update-department', methods=['POST'])
@@ -374,7 +370,6 @@ def update_department():
         cnx.close()
         return jsonify({'handled': True}), 200
     except Exception as e:
-        print(e)
         return jsonify({'handled': False}), 500
     
 @app.route('/api/add-department', methods=['POST'])
@@ -390,7 +385,6 @@ def add_department():
         cnx.close()
         return jsonify({'handled': True}), 200
     except Exception as e:
-        print(e)
         return jsonify({'handled': False}), 500
     
 # ---------------------------------------
