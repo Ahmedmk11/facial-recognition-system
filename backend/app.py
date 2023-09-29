@@ -307,7 +307,10 @@ def login():
     if not queryResult:
         return jsonify({'message': f'We couldn\'t find an account with username: {username}'}), 404
     else:
-        return jsonify({'message': 'Username Found'}), 200
+        if (queryResult[0][0][11] == '1'):
+            return jsonify({'message': 'Username Found'}), 200
+        else:
+            return jsonify({'message': 'Employee account suspended'}), 403
 
 @app.route('/clear-session-user', methods=['POST'])
 def clear_session_user():

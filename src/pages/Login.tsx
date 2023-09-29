@@ -54,9 +54,14 @@ function Login() {
                 form.resetFields()
                 setIsWebcamVisible(true)
             }
-        } catch (error) {
-            console.error('Error:', error)
-            message.error('Login failed')
+        } catch (error: any) {
+            if (error.response && error.response.status) {
+                if (error.response.status === 403) {
+                    message.error('Employee account is suspended')
+                }
+            } else {
+                message.error('Login failed')
+            }
         }
     }
 

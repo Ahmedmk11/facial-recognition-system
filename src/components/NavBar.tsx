@@ -166,7 +166,12 @@ function NavBar() {
                                     </p>
                                 </div>
                                 <Button
-                                    style={{ alignSelf: 'flex-end' }}
+                                    style={{
+                                        alignSelf: 'flex-end',
+                                        display: 'flex',
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                    }}
                                     type='default'
                                     onClick={(
                                         e: React.MouseEvent<
@@ -176,7 +181,8 @@ function NavBar() {
                                     ) => {
                                         handleDeleteNotification(e, item[0])
                                     }}>
-                                    Hide
+                                    <IssuesCloseOutlined />
+                                    Handled
                                 </Button>
                             </div>
                         )
@@ -189,6 +195,7 @@ function NavBar() {
                                         You have {notificationData.length}{' '}
                                         notifications.
                                     </p>
+                                    <Divider />
                                 </div>
                             ),
                             key: 'n_0',
@@ -198,6 +205,7 @@ function NavBar() {
                                 label: (
                                     <div key={`notification_${index + 1}`}>
                                         {notification}
+                                        <Divider />
                                     </div>
                                 ),
                                 key: `notification_${index + 1}`,
@@ -285,6 +293,7 @@ function NavBar() {
                                         You have {notificationData.length}{' '}
                                         notifications.
                                     </p>
+                                    <Divider />
                                 </div>
                             ),
                             key: 'n_0',
@@ -294,6 +303,7 @@ function NavBar() {
                                 label: (
                                     <div key={`notification_${index + 1}`}>
                                         {notification}
+                                        <Divider />
                                     </div>
                                 ),
                                 key: `notification_${index + 1}`,
@@ -356,6 +366,19 @@ function NavBar() {
                                 }}>
                                 Attendance
                             </p>
+                            {role == 'super' ? (
+                                <p
+                                    className={
+                                        page === 'Departments'
+                                            ? 'underlined-item'
+                                            : 'hover-underline-animation'
+                                    }
+                                    onClick={() => {
+                                        navigate('/departments')
+                                    }}>
+                                    Departments
+                                </p>
+                            ) : null}
                         </>
                     )}
                 </div>

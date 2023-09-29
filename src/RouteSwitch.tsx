@@ -16,6 +16,7 @@ import AuthGuard from './AuthGuard'
 import Profile from './pages/Profile'
 import Attendance from './pages/Attendance'
 import NotFoundPage from './pages/NotFoundPage'
+import Departments from './pages/Departments'
 
 const RouteSwitch = () => {
     const location = useLocation()
@@ -103,6 +104,15 @@ const RouteSwitch = () => {
                     <AuthGuard
                         isAuthenticated={isAuthenticated}
                         targetPage={<Attendance />}
+                    />
+                }
+            />
+            <Route
+                path='/departments'
+                element={
+                    <AuthGuard
+                        isAuthenticated={isAuthenticated}
+                        targetPage={<Departments />}
                     />
                 }
             />
