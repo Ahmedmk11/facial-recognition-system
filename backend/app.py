@@ -358,6 +358,40 @@ def delete_notification():
     except Exception as e:
         print(e)
         return jsonify({'handled': False}), 500
+
+@app.route('/api/update-department', methods=['POST'])
+def update_department():
+    try:
+        did = request.json.get('did')
+        name = request.json.get('name')
+        site = request.json.get('site')
+        status = request.json.get('status')
+        cnx = create_db_connection()
+        cursor = cnx.cursor()
+        cursor.callproc('UpdateDepartment', args=(did, name, site, status))
+        cnx.commit()
+        cursor.close()
+        cnx.close()
+        return jsonify({'handled': True}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'handled': False}), 500
+    
+@app.route('/api/add-department', methods=['POST'])
+def add_department():
+    try:
+        name = request.json.get('name')
+        site = request.json.get('site')
+        cnx = create_db_connection()
+        cursor = cnx.cursor()
+        cursor.callproc('InsertDepartment', args=(name, site))
+        cnx.commit()
+        cursor.close()
+        cnx.close()
+        return jsonify({'handled': True}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'handled': False}), 500
     
 # ---------------------------------------
 # GET requests

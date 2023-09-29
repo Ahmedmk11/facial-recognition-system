@@ -3,13 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import NavBar from '../components/NavBar'
 import { checkUserRole } from '../utils/CheckRole'
-import {
-    EditOutlined,
-    CloseOutlined,
-    CheckOutlined,
-    CameraOutlined,
-    UserOutlined,
-} from '@ant-design/icons'
+import { EditOutlined, CloseOutlined, CheckOutlined } from '@ant-design/icons'
 import { Select } from 'antd'
 
 import { checkUserDepartmentAndSite } from '../utils/CheckUserDepartmentAndSite'

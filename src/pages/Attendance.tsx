@@ -50,6 +50,14 @@ function Attendance() {
         Time: [] as string[],
     })
 
+    const [downloadAllData, setDownloadAllData] = useState({
+        ID: [] as number[],
+        FullName: [] as string[],
+        Location: [] as string[],
+        Date: [] as string[],
+        Time: [] as string[],
+    })
+
     const [attendance, setAttendance] = useState<any>([])
 
     async function getUserAttendanceResponse(uid: string) {
@@ -208,6 +216,30 @@ function Attendance() {
             setData([])
         }
     }, [attendance, users])
+
+    useEffect(() => {
+        if (data.length > 0) {
+            const newDownloadData = {
+                ID: [] as number[],
+                FullName: [] as string[],
+                Location: [] as string[],
+                Date: [] as string[],
+                Time: [] as string[],
+            }
+
+            console.log('dataaa', data)
+
+            data.forEach((a: any) => {
+                newDownloadData.ID.push(a.uid)
+                newDownloadData.FullName.push(a.fullname)
+                newDownloadData.Location.push(a.location)
+                newDownloadData.Date.push(a.date)
+                newDownloadData.Time.push(a.time)
+            })
+
+            setDownloadAllData(newDownloadData)
+        }
+    }, [data])
 
     const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
         console.log('selectedRowKeys changed: ', newSelectedRowKeys)
@@ -371,8 +403,13 @@ function Attendance() {
     const handleOptionSelect = (selectedValues: any) => {
         setSelectedOptions(selectedValues)
     }
+
     function handleDownloadReport() {
         downloadExcel(downloadData)
+    }
+
+    function handleDownloadAllReports() {
+        downloadExcel(downloadAllData)
     }
 
     function handleDateChange(values: any): void {
@@ -399,7 +436,6 @@ function Attendance() {
                             pagination={false}
                         />
                     ) : (
-                        // Render the actual table data when not loading
                         <Table
                             style={{ paddingLeft: 12 }}
                             rowSelection={rowSelection}
@@ -407,6 +443,7 @@ function Attendance() {
                             dataSource={data}
                             pagination={{
                                 position: ['bottomLeft'],
+                                pageSize: 5,
                             }}
                         />
                     )}
@@ -465,20 +502,45 @@ function Attendance() {
                         </div>
                     )}
 
-                    <button
-                        disabled={
-                            downloadData.ID && downloadData.ID.length == 0
-                        }
-                        className='btn btn-primary btn-lg float-right custom-button'
+                    <div
                         style={{
-                            fontSize: 15,
-                            width: '85%',
-                        }}
-                        onClick={() => {
-                            handleDownloadReport()
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            width: '100%',
+                            gap: 12,
                         }}>
-                        Download Report
-                    </button>
+                        <button
+                            disabled={
+                                downloadAllData.ID &&
+                                downloadAllData.ID.length == 0
+                            }
+                            className='btn btn-primary btn-lg float-right custom-button'
+                            style={{
+                                fontSize: 15,
+                                width: '85%',
+                            }}
+                            onClick={() => {
+                                handleDownloadAllReports()
+                            }}>
+                            Download All Reports
+                        </button>
+                        <button
+                            disabled={
+                                downloadData.ID && downloadData.ID.length == 0
+                            }
+                            className='btn btn-primary btn-lg float-right custom-button'
+                            style={{
+                                fontSize: 15,
+                                width: '85%',
+                            }}
+                            onClick={() => {
+                                handleDownloadReport()
+                            }}>
+                            Download Report
+                        </button>
+                    </div>
                 </div>
             </div>
             <Footer />

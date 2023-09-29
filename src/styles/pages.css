@@ -27,7 +27,8 @@ body.dark {
 #attendance-page,
 #register-page,
 #login-page,
-#notfound-page {
+#notfound-page,
+#departments-page {
   height: fit-content;
   min-height: 100%;
   width: 100%;
@@ -266,6 +267,91 @@ body.dark {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+}
+
+#departments-content {
+  width: 100%;
+  height: 75vh;
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  margin: auto;
+}
+#departments-content .ant-table-wrapper {
+  width: 95% !important;
+}
+#departments-content .ant-table-wrapper .ant-table {
+  border-left: 1px solid var(--table-border-color);
+  border-right: 1px solid var(--table-border-color);
+}
+#departments-content .ant-table-wrapper .ant-table th {
+  white-space: nowrap;
+}
+#departments-content .ant-table-wrapper .ant-table td {
+  min-width: 300px;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#departments-content .ant-table-wrapper .ant-table .col-id {
+  min-width: 80px;
+  max-width: 80px;
+}
+#departments-content .ant-table-wrapper .ant-table .col-name,
+#departments-content .ant-table-wrapper .ant-table .col-site {
+  min-width: 350px;
+  max-width: 350px;
+}
+#departments-content .ant-table-wrapper .ant-table .col-status {
+  min-width: 150px;
+  max-width: 150px;
+}
+#departments-content .ant-table-wrapper .ant-table .col-action {
+  min-width: 184px;
+  max-width: 184px;
+}
+#departments-content .ant-table-wrapper .ant-table .tbuttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+#departments-content .ant-table-wrapper .ant-table .ant-switch {
+  display: inline-block;
+}
+#departments-content button {
+  align-self: flex-end;
+}
+
+.skeletons {
+  width: 100% !important;
+}
+
+#add-new-dep {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+#add-new-dep #new-dep-inputs {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+}
+#add-new-dep .new-dep-buttons {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
 }
 
 /*# sourceMappingURL=pages.css.map */

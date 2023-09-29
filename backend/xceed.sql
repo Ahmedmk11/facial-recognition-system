@@ -350,6 +350,17 @@ BEGIN
     WHERE (u1.department_id = did OR u2.department_id = did);
 END;
 
+CREATE PROCEDURE UpdateDepartment(IN did INT, IN newName VARCHAR(128), IN newSite VARCHAR(128), IN newStatus VARCHAR(1))
+BEGIN
+    UPDATE Department
+    SET
+        name = newName,
+        site = newSite,
+        dep_status = newStatus
+    WHERE
+        id = did;
+END;
+
 -- Testing
 
 CREATE TABLE debuglog (

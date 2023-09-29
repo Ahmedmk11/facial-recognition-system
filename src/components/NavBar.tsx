@@ -369,7 +369,7 @@ function NavBar() {
                             {role == 'super' ? (
                                 <p
                                     className={
-                                        page === 'Departments'
+                                        page === 'departments'
                                             ? 'underlined-item'
                                             : 'hover-underline-animation'
                                     }
