@@ -239,7 +239,7 @@ function Profile() {
                     setPhone(selectedUser[7] ? selectedUser[7] : 'TBA')
                     setBirthdate(
                         selectedUser[10]
-                            ? dateToString(selectedUser[10])
+                            ? dateToString(selectedUser[10]).split(', ')[1]
                             : 'TBA'
                     )
                     setLocation(selectedUser[14] ? selectedUser[14] : 'TBA')
@@ -471,7 +471,9 @@ function Profile() {
                 setEmail(selectedUser[3] ? selectedUser[3] : 'TBA')
                 setPhone(selectedUser[7] ? selectedUser[7] : 'TBA')
                 setBirthdate(
-                    selectedUser[10] ? dateToString(selectedUser[10]) : 'TBA'
+                    selectedUser[10]
+                        ? dateToString(selectedUser[10]).split(', ')[1]
+                        : 'TBA'
                 )
                 setLocation(selectedUser[14] ? selectedUser[14] : 'TBA')
                 setAddress(selectedUser[6] ? selectedUser[6] : 'TBA')

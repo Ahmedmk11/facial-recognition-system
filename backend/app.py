@@ -462,7 +462,6 @@ def get_user_by_id():
     base64_string = 'data:image/jpeg;base64,' + base64.b64encode(user_list[13]).decode('utf-8')
     resized = resize_image(base64_string)
     resized = resized.split(',')[1]
-    print(resize_image)
     user_list[13] = resized
     user = tuple(user_list)
     return jsonify({'user': user})
@@ -509,6 +508,12 @@ def generate_excel():
     excel_writer.save()
     
     return send_file('downloads/attendance_reports/AttendanceReport.xlsx', as_attachment=True)
+
+@app.route('/api/get-notifications', methods=['GET'])
+def get_notifications():
+    notifs = call_procedure('GetAllNotifications')
+    print('notifs', notifs[0])
+    return jsonify({'notifs': notifs[0]})
 
 # ---------------------------------------
 

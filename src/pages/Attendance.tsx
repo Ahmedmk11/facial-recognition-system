@@ -384,8 +384,7 @@ function Attendance() {
             <NavBar />
             <div id='attendance-content'>
                 <div id='attendance-container'>
-                    {isLoading ? ( // Check if it's loading
-                        // Render the skeleton rows while loading
+                    {isLoading ? (
                         <Table
                             style={{ paddingLeft: 12 }}
                             columns={columns}

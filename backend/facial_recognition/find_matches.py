@@ -16,7 +16,7 @@ def find_matches(test_image_base64, known_images_base64):
     for i, test_embedding in enumerate(test_embeddings):
         for j, known_embedding in enumerate(known_embeddings):
             distance = np.linalg.norm(np.array(test_embedding) - np.array(known_embedding))
-            if distance < 0.4:
+            if distance < 0.5:
                 return True
             else:
                 return False
