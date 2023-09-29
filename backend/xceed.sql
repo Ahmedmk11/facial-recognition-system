@@ -324,13 +324,17 @@ BEGIN
 
     IF existing_records = 0 THEN
         INSERT INTO Notifications (user1_id, user2_id, user1_fn, user2_fn, violation_date)
-        VALUES (uid1, uid2, fn1, fn2, NOW());
+        VALUES (uid1, uid2, fn1, fn2, NOW(), '0');
     END IF;
 END;
 
 CREATE PROCEDURE DeleteNotification(IN nid INT)
 BEGIN
-    # to do
+    UPDATE Notifications
+    SET
+        isHandled = '1'
+    WHERE
+        id = nid;
 END;
 
 CREATE PROCEDURE GetAllNotifications()
@@ -338,9 +342,12 @@ BEGIN
     SELECT * FROM Notifications;
 END;
 
-CREATE PROCEDURE GetAllNotificationsFromDepartment(IN did INT)
+CREATE PROCEDURE GetAllNotificationsForAdmin(IN did INT)
 BEGIN
-    # to do
+    SELECT n.id, n.user1_id, n.user2_id, n.user1_fn, n.user2_fn, n.violation_date, isHandled FROM Notifications AS n
+    INNER JOIN User AS u1 ON n.user1_id = u1.id 
+    INNER JOIN User AS u2 ON n.user2_id = u2.id 
+    WHERE (u1.department_id = did OR u2.department_id = did);
 END;
 
 -- Testing
@@ -440,3 +447,9 @@ MODIFY COLUMN user_picture MEDIUMBLOB;
 
 TRUNCATE TABLE Notifications;
 ALTER TABLE Notifications AUTO_INCREMENT = 1;
+
+ALTER TABLE Notifications
+ADD isHandled VARCHAR(1);
+
+UPDATE Notifications
+SET isHandled = 0;

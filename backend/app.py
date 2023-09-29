@@ -340,6 +340,21 @@ def update_user():
                                newLocation, newPhoneNumber, newRole, newBirthdate, newEmploymentStatus, newDepartmentId, newImage, debugMode)
 
     return jsonify({'result': result})
+
+@app.route('/api/delete-notifications', methods=['POST'])
+def delete_notification():
+    try:
+        nid = request.json.get('nid')
+        cnx = create_db_connection()
+        cursor = cnx.cursor()
+        cursor.callproc('DeleteNotification', args=(nid,))
+        cnx.commit()
+        cursor.close()
+        cnx.close()
+        return jsonify({'handled': True}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'handled': False}), 500
     
 # ---------------------------------------
 # GET requests
@@ -512,7 +527,12 @@ def generate_excel():
 @app.route('/api/get-notifications', methods=['GET'])
 def get_notifications():
     notifs = call_procedure('GetAllNotifications')
-    print('notifs', notifs[0])
+    return jsonify({'notifs': notifs[0]})
+
+@app.route('/api/get-notifications-admin', methods=['GET'])
+def get_notifications_admin():
+    did = request.args.get('did')
+    notifs = call_procedure('GetAllNotificationsForAdmin', did)
     return jsonify({'notifs': notifs[0]})
 
 # ---------------------------------------

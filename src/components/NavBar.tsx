@@ -19,6 +19,9 @@ import { checkUserRole } from '../utils/CheckRole'
 import { getAllNotifications } from '../utils/GetAllNotifications'
 import { dateToString } from '../utils/DateToString'
 import { IssuesCloseOutlined } from '@ant-design/icons'
+import { getUserByID } from '../utils/GetUserByID'
+import { getAllNotificationsForAdmin } from '../utils/GetAllNotificationsForAdmin'
+import { deleteNotification } from '../utils/DeleteNotification'
 
 const SunIcon = () => <img style={{ width: 20, height: 20 }} src={sunIcn} />
 const MoonIcon = () => <img style={{ width: 20, height: 20 }} src={moonIcn} />
@@ -30,6 +33,7 @@ function NavBar() {
         document.body.classList.contains('light') ? 'light' : 'dark'
     )
     const [role, setRole] = useState<any>(null)
+    const [currUser, setCurrUser] = useState<any>('')
     const [popped, setPopped] = useState<number>(0)
     const [notifs, setNotifs] = useState<MenuProps['items']>([])
 
@@ -41,6 +45,13 @@ function NavBar() {
                 })
                 .catch((error) => {
                     console.log(error)
+                })
+            getUserByID()
+                .then((user) => {
+                    setCurrUser(user)
+                })
+                .catch((error) => {
+                    console.error(error)
                 })
         }
     }, [])
@@ -73,21 +84,32 @@ function NavBar() {
         }
     }
 
-    const handleDeleteNotification = (e: any, id: number) => {
+    const handleDeleteNotification = (e: any, nid: number) => {
         const item = e.target.closest('.ant-dropdown-menu-item')
         if (item) {
             item.remove()
             setPopped((prevPopped) => prevPopped + 1)
+            deleteNotification(nid)
         }
     }
 
     useEffect(() => {
         const fetchAdminNotifications = async () => {
             try {
-                const notifRes: any = await getAllNotifications()
-                console.log(notifRes)
+                const notifResSuper: any = await getAllNotifications()
+                const notifResAdmin: any = await getAllNotificationsForAdmin(
+                    currUser[12]
+                )
+                const filteredNotifResSuper = notifResSuper.filter(
+                    (item: any) => item[6] == '0'
+                )
+
+                const filteredNotifResAdmin = notifResAdmin.filter(
+                    (item: any) => item[6] == '0'
+                )
+                console.log('hologogo', filteredNotifResAdmin)
                 if (role == 'super') {
-                    const notificationData = notifRes.map(
+                    const notificationData = filteredNotifResSuper.map(
                         (item: any, index: any) => (
                             <div
                                 key={`notif_${index}`}
@@ -183,15 +205,100 @@ function NavBar() {
                         ) ?? []),
                     ])
                 } else if (role == 'admin') {
+                    const notificationData = filteredNotifResAdmin.map(
+                        (item: any, index: any) => (
+                            <div
+                                key={`notif_${index}`}
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                }}>
+                                <div>
+                                    <p>
+                                        <span className='not-t'>
+                                            Offender ID:{' '}
+                                        </span>
+                                        <div className='not-cont'>
+                                            <span className='not-p'>
+                                                {item[1]}{' '}
+                                            </span>
+                                        </div>
+                                        <span className='not-t'>User ID: </span>
+                                        <div className='not-cont'>
+                                            <span className='not-p'>
+                                                {item[2]}
+                                            </span>
+                                        </div>
+                                    </p>
+                                    <p>
+                                        <span className='not-t'>
+                                            Offender Full Name:{' '}
+                                        </span>
+                                        <div className='not-cont'>
+                                            <span className='not-p'>
+                                                {item[3]}{' '}
+                                            </span>
+                                        </div>
+                                        <span className='not-t'>
+                                            User Full Name:{' '}
+                                        </span>
+                                        <div className='not-cont'>
+                                            <span className='not-p'>
+                                                {item[4]}
+                                            </span>
+                                        </div>
+                                    </p>
+                                    <p>
+                                        <span className='not-t'>
+                                            Violation Date:{' '}
+                                        </span>
+                                        <div className='not-cont'>
+                                            <span className='not-p'>
+                                                {dateToString(item[5])}
+                                            </span>
+                                        </div>
+                                    </p>
+                                </div>
+                                <Button
+                                    style={{ alignSelf: 'flex-end' }}
+                                    type='default'
+                                    onClick={(
+                                        e: React.MouseEvent<
+                                            HTMLElement,
+                                            MouseEvent
+                                        >
+                                    ) => {
+                                        handleDeleteNotification(e, item[0])
+                                    }}>
+                                    Hide
+                                </Button>
+                            </div>
+                        )
+                    )
                     setNotifs([
                         {
                             label: (
                                 <div key='count'>
-                                    <p>You have 0 notifications.</p>
+                                    <p>
+                                        You have {notificationData.length}{' '}
+                                        notifications.
+                                    </p>
                                 </div>
                             ),
                             key: 'n_0',
                         },
+                        ...(notificationData.map(
+                            (notification: any, index: any) => ({
+                                label: (
+                                    <div key={`notification_${index + 1}`}>
+                                        {notification}
+                                    </div>
+                                ),
+                                key: `notification_${index + 1}`,
+                            })
+                        ) ?? []),
                     ])
                 }
             } catch (error) {
@@ -200,7 +307,7 @@ function NavBar() {
         }
 
         fetchAdminNotifications()
-    }, [role])
+    }, [role, currUser])
 
     return (
         <div id='navbar-component'>

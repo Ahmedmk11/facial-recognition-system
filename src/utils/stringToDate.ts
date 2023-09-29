@@ -1,6 +1,6 @@
 export function stringToDate(inputDateString: any): any {
     const dateParts = inputDateString.split(' ')
-
+    console.log(dateParts)
     if (dateParts.length !== 3) {
         return null // Invalid input format
     }
@@ -20,8 +20,8 @@ export function stringToDate(inputDateString: any): any {
         Dec: '12',
     }
 
-    const month = monthNames[dateParts[0]]
-    const day = dateParts[1].replace(',', '') // Remove the comma
+    const month = monthNames[dateParts[1]]
+    const day = dateParts[0]
     const year = dateParts[2]
 
     if (!month || isNaN(parseInt(day)) || isNaN(parseInt(year))) {

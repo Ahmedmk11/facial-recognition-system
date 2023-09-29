@@ -518,6 +518,7 @@ function Profile() {
             !jobTitleError
         ) {
             setRender(!render)
+            console.log('bb', stringToDate(birthdate))
             updateUser(
                 selectedUser[0],
                 firstName,
